@@ -1,0 +1,37 @@
+name: TypeScript builder
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    # The test runs on an ubuntu virtual machine
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Check out the repository
+      - name: Check out repository
+        uses: actions/checkout@v2
+
+      # 2. Set up Node.js on the vm
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '16'  # Node.js version is adjustable here
+
+      # 3. Install all dependencies that are used in the code
+      - name: Install dependencies
+        run: npm install
+
+      # 4. Compile TypeScript to Javascript
+      - name: Compile TypeScript
+        run: npx tsc  # This runs the TypeScript compiler based on the tsconfig.json
+
+      # 5. Run all the tests (If we have any)
+      
+      # 6. Finally, the pipeline will fail, if there was an error during testing or compilation 
