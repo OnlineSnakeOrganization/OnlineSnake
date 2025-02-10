@@ -4,9 +4,9 @@ import React, { createContext, useContext, useState, ReactNode } from "react";
 
 // GameContext variables and the methods to change thier value
 type GameState = {
-  inGame: boolean;          //true if inGame, false if not
-  startGame: () => void;    //Call this method to set inGame = true
-  endGame: () => void;      //Call this method to set inGame = false
+  inGame: boolean;            //true if inGame, false if not
+  startGame: () => void;     //Sets inGame to true.
+  endGame: () => void;        //Sets inGame to false.
 };
 
 // Define the type for the GameProvider props (with children)
@@ -30,7 +30,7 @@ export const GameProvider: React.FC<GameProviderProps> = ({ children }) => {
   };
 
   return (
-    <GameContext.Provider value={{ inGame: isInGame, startGame, endGame }}>
+    <GameContext.Provider value={{ inGame: isInGame, startGame: startGame, endGame }}>
       {children} {/* Render the children passed to this provider */}
     </GameContext.Provider>
   );
