@@ -1,4 +1,4 @@
-//Verbindet die Main und Game Page miteinander
+//Verbindet die Main und Game Page miteinander.
 import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import GamePage from "./pages/GamePage";
