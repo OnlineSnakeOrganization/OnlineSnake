@@ -30,7 +30,7 @@ jobs:
 
       # 4. Compile TypeScript to Javascript
       - name: Compile TypeScript
-        run: npx tsc  # This runs the TypeScript compiler based on the tsconfig.json
+        run: npx tsc --noEmit  # This runs the TypeScript compiler based on the tsconfig.json
 
       # 5. Run all the tests (If we have any)
       
