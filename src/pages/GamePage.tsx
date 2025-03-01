@@ -51,7 +51,7 @@ const GamePage: React.FC = () => {
       return (
         <>
           <div
-            key={key} // Key remains unchanged
+            key={key}
             className={"block"}
             style={{ backgroundColor: color,
               width: blockWidth,

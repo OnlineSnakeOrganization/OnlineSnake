@@ -12,7 +12,7 @@ type GameState = {
 // Define the type for the GameProvider props (with children)
 interface GameProviderProps {
   children: ReactNode; // children can be anything that React can render
-}
+} 
 
 // Create the context
 const GameContext = createContext<GameState | undefined>(undefined);
