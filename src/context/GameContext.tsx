@@ -5,7 +5,7 @@ import React, { createContext, useContext, useState, ReactNode } from "react";
 // GameContext variables and the methods to change thier value
 type GameState = {
   inGame: boolean;            //true if inGame, false if not
-  startGame: () => void;     //Sets inGame to true.
+  loadGame: () => void;       //Sets inGame to true.
   endGame: () => void;        //Sets inGame to false.
 };
 
@@ -21,7 +21,7 @@ const GameContext = createContext<GameState | undefined>(undefined);
 export const GameProvider: React.FC<GameProviderProps> = ({ children }) => {
   const [isInGame, setIsInGame] = useState(false);
 
-  const startGame = () => {
+  const loadGame = () => {
     setIsInGame(true);
   };
 
@@ -30,13 +30,14 @@ export const GameProvider: React.FC<GameProviderProps> = ({ children }) => {
   };
 
   return (
-    <GameContext.Provider value={{ inGame: isInGame, startGame: startGame, endGame }}>
+    <GameContext.Provider value={{ inGame: isInGame, loadGame: loadGame, endGame }}>
       {children} {/* Render the children passed to this provider */}
     </GameContext.Provider>
   );
 };
 
 // Custom hook to access the GameContext variables and methods
+// eslint-disable-next-line react-refresh/only-export-components
 export const useGame = () => {
   const context = useContext(GameContext);
   if (!context) {

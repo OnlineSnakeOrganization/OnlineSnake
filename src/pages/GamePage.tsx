@@ -7,11 +7,12 @@ import '../css/game.css';
 const GamePage: React.FC = () => {
   const navigate = useNavigate();
   const {inGame, endGame} = useGame();
-  const rows = 25;     // Number of rows
-  const columns = 25;  // Number of columns
+  const rows = 20;     // Number of rows
+  const columns = 20;  // Number of columns
   const blockWidth: number = 25;
   const blockHeight: number = 25;
-  // blocks is a 2d array
+
+  // blocks is a 2d array of (you guessed it) blocks
   const [blocks, setBlocks] = useState(
     Array.from({ length: rows }, (_, row) =>
       Array.from({ length: columns }, (_, col) => (
@@ -19,35 +20,34 @@ const GamePage: React.FC = () => {
           key: `${row}-${col}`,
           color: "black",
         }))
-    )
-  );
-
-  const [test, setTest] = useState(0);
+    ));
 
   // Before rendering on the screen, check if the client is allowed to be on '/game'
   useEffect(() => {
     if (!inGame) {
       navigate("/");
     }
-  }, [inGame, navigate]);
+    setBlocks(blocks);  //Useless call but I have to use setBlocks atleast once
+  }, [blocks, inGame, navigate]);
   
-  const changeBlockColor = (row: number, column: number, newColor: string) => {
-    setBlocks((prevBlock) => {
-      const newBlock = prevBlock.map((r) => [...r]); // Clone array
-      const targetSquare = newBlock[row][column]; // Access the existing square object
-      newBlock[row][column] = { ...targetSquare, color: newColor }; // Change the color
-      return newBlock;
-    });
+  const setBlockColor = (row: number, column: number, newColor: string) => {
+    setBlocks((prevBlocks) =>
+      prevBlocks.map((rowArray, r) =>
+        r === row
+          ? rowArray.map((block, c) =>
+              c === column ? { ...block, color: newColor } : block
+            )
+          : rowArray
+      )
+    );
+    blocks[row][column].color = newColor;
   };
 
-  
-  // Generate an Array of div's from the blocs which are then used to render the map
+  // Return an Array of div's from the blocks which are then used to render the map
   const renderBoard = () => {
-
     return blocks.flat().map(({ key, color }, index) => {
       const row = Math.floor(index / columns);
       const column = index % columns;
-
       return (
         <>
           <div
@@ -59,20 +59,13 @@ const GamePage: React.FC = () => {
               background: "#000000",
               border: "0.5px solid rgba(255, 255, 255, 0.077)"}}
             onMouseEnter={() => {
-              setTest(test + 2);
-              if(test >= 255){
-                setTest(0);
-              } 
-              let color: string = "00" + test.toString(16) + "ff"
-              if (color.length === 5) color = "0" + color;
-              color = "#" + color;
-              changeBlockColor(row, column, color);
-              console.log(color)
+              setBlockColor(row, column, "green");
             }}
-            onMouseLeave={() => {
-              setTimeout(() => {
-              changeBlockColor(row, column, "black");
-              }, 1000);
+            //onMouseLeave={() => {
+            //  setBlockColor(row, column, "blue");
+            //}}
+            onClick={()=>{
+              setBlockColor(row, column, "red");
             }}
           />
         </>
@@ -93,11 +86,11 @@ const GamePage: React.FC = () => {
         display: "grid",
         gridTemplateColumns: `repeat(${columns}, ${blockWidth}px)`, // Dynamically set columns
         gridTemplateRows: `repeat(${rows}, ${blockHeight}px)`, // Dynamically set rows
-
         width: `${columns * blockWidth}px`, // Adjust width based on columns
         height: `${rows * blockHeight}px`, // Adjust height based on rows
       }}>
-        {renderBoard()}
+        {renderBoard() //Insert the gameboard
+          }
       </div>
     </>
     
