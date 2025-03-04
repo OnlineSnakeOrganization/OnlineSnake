@@ -2,6 +2,7 @@
 import React from "react";
 import { useGame } from "../context/GameContext";
 import { useNavigate } from "react-router-dom";
+import '../css/home.css';
 
 const HomePage: React.FC = () => {
   const {loadGame: loadGame} = useGame();
@@ -23,6 +24,6 @@ export default HomePage;
 
 /*
 Die css Datei, die im Moment quasi überall geladen ist, wird in main.tsx importiert. Das ist die 'index.css' file.
-Wenn ihr jetzt custom machen wollt (Mit Sterne Parallaxe und so xd) Dann macht einach eine neue css "home.css" und schreibt da rein und
+Wenn ihr jetzt custom machen wollt (Mit Sterne Parallaxe und so xd) Dann macht einfach eine neue css "home.css" und schreibt da rein und
 importiert diese in diesem Skript.
 */
