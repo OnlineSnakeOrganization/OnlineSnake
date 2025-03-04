@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 import '../css/home.css';
 
 const HomePage: React.FC = () => {
-  const {startGame: startGame} = useGame();
+  const {loadGame: loadGame} = useGame();
   const navigate = useNavigate()
 
   return (
@@ -13,7 +13,7 @@ const HomePage: React.FC = () => {
       <h1>Welcome to Snake Game🐍</h1>
       <p>Schnek</p>
       <button onClick={() => {
-        startGame();      //Sets the ingame variable to true
+        loadGame();      //Sets the ingame variable to true
         navigate("/game") //Loads the game page
       }}>Start Game</button>
     </div>
