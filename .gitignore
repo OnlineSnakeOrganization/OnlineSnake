@@ -1,0 +1,38 @@
+# Node modules
+node_modules/
+
+# Build output
+/dist
+/.vite
+
+# Dependency directories
+/pnpm-lock.yaml
+/package-lock.json
+/yarn.lock
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Log files
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS and IDE specific files
+.DS_Store
+.vscode/
+.idea/
+
+# Miscellaneous files
+*.swp
+*.swo
+*.bak
+
+# Vite specific
+vite.config.ts
+vite.config.js
+
+# Testing
+coverage/
