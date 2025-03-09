@@ -14,8 +14,7 @@ const HomePage: React.FC = () => {
         <h3>Local Highscores</h3>
     </div>
     <div className="container">
-        <h1 className="title">Snake</h1>
-        <h2 className="subtitle">Online</h2>
+        <h1 className="title">Online-Snake</h1>
         <div className="input-container">
           <input type="text" placeholder="Dein Name" id="playerName"></input>
         </div>
@@ -33,9 +32,3 @@ const HomePage: React.FC = () => {
 };
 
 export default HomePage;
-
-/*
-Die css Datei, die im Moment quasi überall geladen ist, wird in main.tsx importiert. Das ist die 'index.css' file.
-Wenn ihr jetzt custom machen wollt (Mit Sterne Parallaxe und so xd) Dann macht einfach eine neue css "home.css" und schreibt da rein und
-importiert diese in diesem Skript.
-*/
