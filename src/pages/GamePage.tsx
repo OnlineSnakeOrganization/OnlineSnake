@@ -1,16 +1,18 @@
 //Dieser Code rendert das Spiel
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useGame } from "../context/GameContext";
+import { GameContext } from "../context/GameContext";
 import '../css/game.css';
+import SinglePlayerLogic from "../game/SinglePlayerLogic";
 
 const GamePage: React.FC = () => {
   const navigate = useNavigate();
-  const {inGame, endGame} = useGame();
-  const rows = 20;     // Number of rows
-  const columns = 20;  // Number of columns
+  const {inGame, endGame} = useContext(GameContext);
+  const rows = 15;     // Number of rows
+  const columns = 15;  // Number of columns
   const blockWidth: number = 25;
   const blockHeight: number = 25;
+  const [currentSnakeLength, setCurrentSnakeLength] = useState(1);
 
   // blocks is a 2d array of (you guessed it) blocks
   const [blocks, setBlocks] = useState(
@@ -22,17 +24,32 @@ const GamePage: React.FC = () => {
         }))
     ));
 
+  const [logic] = useState(new SinglePlayerLogic(rows, columns, setBlockColor, clearBoard, setCurrentSnakeLength));
+
   // Before rendering on the screen, check if the client is allowed to be on '/game'
   useEffect(() => {
     if (!inGame) {
       navigate("/");
+    }else{
+      logic.start();
     }
-    setBlocks(blocks);  //Useless call but I have to use setBlocks atleast once
-  }, [blocks, inGame, navigate]);
-  
-  const setBlockColor = (row: number, column: number, newColor: string) => {
-    setBlocks((prevBlocks) =>
-      prevBlocks.map((rowArray, r) =>
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); //Leave empty so this method only gets invoked once.
+
+  function clearBoard(){  //Resets all blocks colors.
+    setBlocks(
+      Array.from({ length: rows }, (_, row) =>
+        Array.from({ length: columns }, (_, col) => (
+          {
+            key: `${row}-${col}`,
+            color: "black",
+          }))
+      ));
+  }
+
+  function setBlockColor(column: number, row: number, newColor: string) {
+    setBlocks((prevBlocksArray) =>
+      prevBlocksArray.map((rowArray, r) =>
         r === row
           ? rowArray.map((block, c) =>
               c === column ? { ...block, color: newColor } : block
@@ -40,35 +57,23 @@ const GamePage: React.FC = () => {
           : rowArray
       )
     );
-    blocks[row][column].color = newColor;
   };
 
   // Return an Array of div's from the blocks which are then used to render the map
   const renderBoard = () => {
-    return blocks.flat().map(({ key, color }, index) => {
-      const row = Math.floor(index / columns);
-      const column = index % columns;
+    return blocks.flat().map(({ key, color }) => {
+      //const row = Math.floor(index / columns);
+      //const column = index % columns;
       return (
-        <>
           <div
             key={key}
             className={"block"}
-            style={{ backgroundColor: color,
+            style={{ 
+              backgroundColor: color,
               width: blockWidth,
               height: blockHeight,
-              background: "#000000",
               border: "0.5px solid rgba(255, 255, 255, 0.077)"}}
-            onMouseEnter={() => {
-              setBlockColor(row, column, "green");
-            }}
-            //onMouseLeave={() => {
-            //  setBlockColor(row, column, "blue");
-            //}}
-            onClick={()=>{
-              setBlockColor(row, column, "red");
-            }}
           />
-        </>
       );
     });
   };
@@ -78,9 +83,11 @@ const GamePage: React.FC = () => {
       <div>
         <h1>Here Be Game</h1>
         <button onClick={() => {
+          logic.stopGame();
           endGame();
           navigate("/");
         }}>Back to Main</button>
+        <p>Length: {currentSnakeLength}</p>
       </div>
       <div className="gameMap" style={{
         display: "grid",
