@@ -13,6 +13,8 @@ const GamePage: React.FC = () => {
   const blockWidth: number = 25;
   const blockHeight: number = 25;
   const [currentSnakeLength, setCurrentSnakeLength] = useState(1);
+  const [playTime, setPlayTime] = useState("")
+  
 
   // blocks is a 2d array of (you guessed it) blocks
   const [blocks, setBlocks] = useState(
@@ -24,7 +26,7 @@ const GamePage: React.FC = () => {
         }))
     ));
 
-  const [logic] = useState(new SinglePlayerLogic(rows, columns, setBlockColor, clearBoard, setCurrentSnakeLength));
+  const [logic] = useState(new SinglePlayerLogic(rows, columns, false, setBlockColor, clearBoard, setCurrentSnakeLength, setPlayTime));
 
   // Before rendering on the screen, check if the client is allowed to be on '/game'
   useEffect(() => {
@@ -88,6 +90,7 @@ const GamePage: React.FC = () => {
           navigate("/");
         }}>Back to Main</button>
         <p>Length: {currentSnakeLength}</p>
+        <p>Time: {playTime}</p>
       </div>
       <div className="gameMap" style={{
         display: "grid",

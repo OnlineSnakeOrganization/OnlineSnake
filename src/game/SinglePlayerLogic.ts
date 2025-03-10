@@ -1,3 +1,4 @@
+import Stopwatch from "../game/Stopwatch";
 type SnakeSegment = {x: number, y: number, color: string};
 type Food = {x: number, y: number};
 class SinglePlayerLogic{
@@ -6,11 +7,15 @@ class SinglePlayerLogic{
     private maxAmountOfFood: number;
     private rows: number;
     private columns: number;
+    private wallsAreDeadly: boolean;
+
     private setBlockColor: (row: number, column: number, newColor: string) => void;
     private clearBoard: ()=>void;
     private displaySnakeLength: (length: number)=>void;
-    private direction: string;
+    private stopWatch: Stopwatch
+    
     private lastDirection: string;
+    private direction: string;
     private inputListener = (key: KeyboardEvent) =>{
         if(key.code === "ArrowUp" || key.code === "KeyW"){
             if(this.direction !== 'DOWN' && this.lastDirection !== 'DOWN'){
@@ -42,13 +47,16 @@ class SinglePlayerLogic{
     };
     private gameInterval: NodeJS.Timeout | undefined;
 
-    constructor(rows: number, columns: number, setBlockColor: (column: number, rows: number, newColor: string) => void, clearBoard:()=>void, displaySnakeLength:(length: number)=>void){
+    constructor(rows: number, columns: number, wallsAreDeadly: boolean,setBlockColor: (column: number, rows: number, newColor: string) => void, 
+                clearBoard:()=>void, displaySnakeLength:(length: number)=>void, displayTime:(time:string)=>void){
         this.rows = rows;
         this.columns = columns
+        this.wallsAreDeadly = wallsAreDeadly;
         this.setBlockColor = setBlockColor;
         this.clearBoard = clearBoard;
         this.displaySnakeLength = displaySnakeLength;
-        this.maxAmountOfFood = 7;
+        this.maxAmountOfFood = 20;
+        this.stopWatch = new Stopwatch(displayTime);
 
         //We already refresh theese variables in the start method but the compiler isnt happy.
         this.direction = "UP";
@@ -57,15 +65,25 @@ class SinglePlayerLogic{
         this.food = [];
     }
 
+    private moveHead(head: SnakeSegment){
+        const direction: string = this.direction;
+        if (direction === 'UP') head.y -= 1;
+        else if (direction === 'DOWN') head.y += 1;
+        else if (direction === 'LEFT') head.x -= 1;
+        else if (direction === 'RIGHT') head.x += 1;
+        this.lastDirection = direction; 
+        
+        if(!this.wallsAreDeadly){
+            //This makes the head appear on the other side of the map if it creeps into a wall.
+            head.x = (head.x + this.columns) % this.columns;
+            head.y = (head.y + this.rows) % this.rows;
+        }
+    }
+
     gameLoop = (): void => {    //Arrow Function because else "this" would be different
         // Create another Snakesegment
         const head = { ...this.snakeSegments[0] };
-        if (this.direction === 'UP') head.y -= 1;
-        else if (this.direction === 'DOWN') head.y += 1;
-        else if (this.direction === 'LEFT') head.x -= 1;
-        else if (this.direction === 'RIGHT') head.x += 1;
-        this.lastDirection = this.direction; 
-
+        this.moveHead(head);
         this.snakeSegments.unshift(head);   //Add it to the front of the Snake
 
         if (this.isGameOver()) {
@@ -134,11 +152,13 @@ class SinglePlayerLogic{
         this.snakeSegments = [];
         this.food = [];
         this.clearBoard();
+        this.stopWatch.reset();
+        this.stopWatch.start();
     
         this.snakeSegments.push(
             {   x: Math.floor(Math.random() * (this.columns-6))+3,
                 y: Math.floor(Math.random() * (this.rows-6))+3,
-                color: "#00ff00"}
+                color: "#ff0000"}
         );   //Place the first Snake segment randomly on the board but with a distance to the border
         this.displaySnakeLength(this.snakeSegments.length);
         this.generateFood();
@@ -158,6 +178,7 @@ class SinglePlayerLogic{
 
     stopGame = (): void => {
         clearInterval(this.gameInterval);
+        this.stopWatch.stop();
     }
 
     exit = (): void =>{
