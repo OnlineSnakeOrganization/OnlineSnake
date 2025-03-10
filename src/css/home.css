@@ -1,0 +1,88 @@
+body {  
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background-color: #000000;
+    color: lightgray;
+    font-family: 'MyCustomFont', sans-serif;
+    margin: 0;
+    position: relative;
+}
+/*freude*/
+@font-face {
+    font-family: 'MyCustomFont';
+    src: url('../fonts/Minecraft.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+.container {
+    text-align: center;
+    z-index: 1;
+}
+
+.title {
+    font-size: 4.5em;
+    color: lawngreen;
+    margin: 0;
+}
+.subtitle {
+    font-size: 1.5em;
+    color: #009a00b8;
+    margin: 0;
+}
+
+.leaderboard {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background-color: #333;
+    padding: 10px;
+    border-radius: 5px;
+    width: 200px;
+    text-align: center;
+}
+
+.left {
+    left: 10px;
+}
+
+.right {
+    right: 10px;
+}
+
+.leaderboard h3 {
+    margin-top: 0;
+
+}
+
+.input-container {
+    margin: 20px 0;
+}
+
+input[type="text"] {
+    padding: 10px;
+    font-size: 1.5em;
+    border: none;
+    border-radius: 5px;
+    margin-bottom: 10px;
+    font-family: 'MyCustomFont';
+}
+
+button {
+    padding: 10px 20px;                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     
+    font-size: 2em;
+    cursor: pointer;
+    font-size: 2em;
+    cursor: pointer;
+    border: none;
+    background-color: #009a00b8;
+    color: lightgray;
+   border-radius: 15px;
+    transition: background-color 0.3s;
+    margin: 5px;
+}
+
+button:hover {
+    background-color: #009a00b8;
+}
