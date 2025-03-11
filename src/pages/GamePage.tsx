@@ -76,7 +76,6 @@ const GamePage: React.FC = () => {
   return (
     <>
       <div>
-        <h1>Here Be Game</h1>
         <button onClick={() => {
           endGame();
           navigate("/");
