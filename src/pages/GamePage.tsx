@@ -10,8 +10,8 @@ const GamePage: React.FC = () => {
   const {inGame, endGame} = useContext(GameContext);
   const rows = 15;     // Number of rows
   const columns = 15;  // Number of columns
-  const blockWidth: number = 25;
-  const blockHeight: number = 25;
+  const blockWidth: number = 30;
+  const blockHeight: number = 30;
   const [currentSnakeLength, setCurrentSnakeLength] = useState(1);
   const [playTime, setPlayTime] = useState("")
   
@@ -22,7 +22,7 @@ const GamePage: React.FC = () => {
       Array.from({ length: columns }, (_, col) => (
         {
           key: `${row}-${col}`,
-          color: "black",
+          color: "black"
         }))
     ));
 
@@ -74,7 +74,8 @@ const GamePage: React.FC = () => {
               backgroundColor: color,
               width: blockWidth,
               height: blockHeight,
-              border: "0.5px solid rgba(255, 255, 255, 0.077)"}}
+              //border: "0.5px solid rgba(255, 255, 255, 0.077)"
+            }}
           />
       );
     });

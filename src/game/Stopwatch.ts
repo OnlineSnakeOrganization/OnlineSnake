@@ -20,7 +20,6 @@ class Stopwatch {
             const minutes = Math.floor(elapsedMs / 60000);
             const seconds = Math.floor((elapsedMs % 60000) / 1000);
             this.displayTime(this.formatTime(minutes, seconds));
-            console.log(this.formatTime(minutes, seconds));
         }, 1000);
     }
 
