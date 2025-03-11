@@ -1,4 +1,5 @@
 import Stopwatch from "../game/Stopwatch";
+import SnakeColorCalculator from "./SnakeColorCalculator";
 type SnakeSegment = {x: number, y: number, color: string};
 type Food = {x: number, y: number};
 class SinglePlayerLogic{
@@ -13,6 +14,7 @@ class SinglePlayerLogic{
     private clearBoard: ()=>void;
     private displaySnakeLength: (length: number)=>void;
     private stopWatch: Stopwatch
+    private snakeColor: SnakeColorCalculator;
     
     private lastDirection: string;
     private direction: string;
@@ -55,6 +57,8 @@ class SinglePlayerLogic{
         this.setBlockColor = setBlockColor;
         this.clearBoard = clearBoard;
         this.displaySnakeLength = displaySnakeLength;
+        this.snakeColor = new SnakeColorCalculator("FF1900", "FF9100"); //"80FF00", "5900FF"
+
         this.maxAmountOfFood = 20;
         this.stopWatch = new Stopwatch(displayTime);
 
@@ -80,11 +84,26 @@ class SinglePlayerLogic{
         }
     }
 
+    resetSnakeColors = ():void =>{
+        const snakeLength: number = this.snakeSegments.length;
+        for(let i = 0; i < this.snakeSegments.length; i++){
+            this.snakeSegments[i].color = this.snakeColor.getColor(i, snakeLength);
+        }
+    }
+
+    pullSnakeColorsToTheHead = ():void =>{
+        for(let i = 1; i < this.snakeSegments.length; i++){
+            this.snakeSegments[i-1].color = this.snakeSegments[i].color;
+        }
+    }
+
     gameLoop = (): void => {    //Arrow Function because else "this" would be different
         // Create another Snakesegment
         const head = { ...this.snakeSegments[0] };
         this.moveHead(head);
         this.snakeSegments.unshift(head);   //Add it to the front of the Snake
+
+        this.pullSnakeColorsToTheHead();    //To keep the colors after each movement.
 
         if (this.isGameOver()) {
             this.stopGame();
@@ -101,6 +120,7 @@ class SinglePlayerLogic{
             if(justAteFood === true){
                 this.generateFood();
                 this.displaySnakeLength(this.snakeSegments.length);
+                this.resetSnakeColors();
             }else{
                 const lastSegment: SnakeSegment = this.snakeSegments[this.snakeSegments.length-1];
                 this.setBlockColor(lastSegment.x, lastSegment.y, "black")
@@ -158,8 +178,10 @@ class SinglePlayerLogic{
         this.snakeSegments.push(
             {   x: Math.floor(Math.random() * (this.columns-6))+3,
                 y: Math.floor(Math.random() * (this.rows-6))+3,
-                color: "#ff0000"}
+                color: ""}
         );   //Place the first Snake segment randomly on the board but with a distance to the border
+
+        this.resetSnakeColors();
         this.displaySnakeLength(this.snakeSegments.length);
         this.generateFood();
         document.addEventListener("keydown", this.inputListener);
@@ -167,8 +189,10 @@ class SinglePlayerLogic{
     }
 
     drawBoard = (): void =>{
-        for (const segment of this.snakeSegments){
-            this.setBlockColor(segment.x, segment.y, segment.color);    
+        for(let i = 0; i < this.snakeSegments.length; i++){
+            const segment = this.snakeSegments[i];
+            this.setBlockColor(segment.x, segment.y, segment.color); 
+            //Only calc colors when food was eaten
         }
 
         for(const food of this.food){
