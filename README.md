@@ -23,12 +23,14 @@
 - 10 Minuten Präsentation pro Gruppe (Funktionsdemo)
 
 # Finale Abgabe - Ende 2. Semester - To Do
-Komplett funktionsfähig mit persistenter Datenspeicherung.
-Mindestanforderungen Backend:
-Persistente Datenspeicherung
-Unabhängige Datenspeicherung für lokale Tests
-Deployment auf einem Server / Serverless
-Web-Security Best-Practices befolgt
-Verbindung Frontend - Backend#
-Abgabe Quellcode + Dokumentation
-15 Minuten Präsentation pro Gruppe
+## Anforderungen Frontend
+- Komplett funktionsfähig mit persistenter Datenspeicherung
+- Persistente Datenspeicherung
+- Unabhängige Datenspeicherung für lokale Tests
+## Anforderungen Backend
+- Deployment auf einem Server / Serverless
+- Web-Security Best-Practices befolgt
+- Verbindung Frontend - Backend
+## Sonstiges
+- Abgabe Quellcode + Dokumentation
+- 15 Minuten Präsentation pro Gruppe (Produktvorstellung)
