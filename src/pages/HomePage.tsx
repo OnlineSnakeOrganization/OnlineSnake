@@ -16,7 +16,7 @@ const HomePage: React.FC = () => {
     <div className="container">
         <h1 className="title">Online-Snake</h1>
         <div className="input-container">
-          <input type="text" placeholder="Dein Name" id="playerName"></input>
+          <input type="text" placeholder="Insert your name" id="playerName"></input>
         </div>
         <button onClick={() => {
         startGame();      //Sets the ingame variable to true
