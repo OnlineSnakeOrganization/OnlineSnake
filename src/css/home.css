@@ -8,6 +8,7 @@ body {
     font-family: 'MyCustomFont', sans-serif;
     margin: 0;
     position: relative;
+    overflow: hidden;
 }
 /*freude*/
 @font-face {
@@ -85,4 +86,48 @@ button {
 
 button:hover {
     background-color: #009a00b8;
+}
+
+#stars, #stars2, #stars3 {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-size: contain;
+    background-position: center;
+    background-repeat: repeat;
+    z-index: 0;
+}
+
+#stars {
+    background: url() repeat top center;
+    animation: animStar 50s linear infinite;
+}
+
+#stars2 {
+    background: url() repeat top center;
+    animation: animStar 100s linear infinite;
+    opacity: 0.5;
+}
+
+#stars3 {
+    background: url() repeat top center;
+    animation: animStar 150s linear infinite;
+    opacity: 0.3;
+}
+
+#stars4 {
+    background: url() repeat top center;
+    animation: animStar 25s linear infinite;
+    opacity: 0.3;
+}
+
+@keyframes animStar {
+    from {
+        transform: translateY(0);
+    }
+    to {
+        transform: translateY(-100%);
+    }
 }
