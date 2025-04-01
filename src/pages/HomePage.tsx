@@ -17,6 +17,7 @@ const HomePage: React.FC = () => {
       <div id="stars"></div>
       <div id="stars2"></div>
       <div id="stars3"></div>
+      <div id="stars4"></div>
       <div className="leaderboard left">
         <h3>Local Highscores</h3>
       </div>

@@ -100,29 +100,6 @@ button:hover {
     z-index: 0;
 }
 
-#stars {
-    background: url() repeat top center;
-    animation: animStar 50s linear infinite;
-}
-
-#stars2 {
-    background: url() repeat top center;
-    animation: animStar 100s linear infinite;
-    opacity: 0.5;
-}
-
-#stars3 {
-    background: url() repeat top center;
-    animation: animStar 150s linear infinite;
-    opacity: 0.3;
-}
-
-#stars4 {
-    background: url() repeat top center;
-    animation: animStar 25s linear infinite;
-    opacity: 0.3;
-}
-
 @keyframes animStar {
     from {
         transform: translateY(0);
