@@ -3,6 +3,7 @@ import React, { useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { GameContext } from "../context/GameContext";
 import '../css/game.css';
+import '../css/stars.css';
 import SinglePlayerLogic from "../game/SinglePlayerLogic";
 
 const GamePage: React.FC = () => {
@@ -83,6 +84,10 @@ const GamePage: React.FC = () => {
 
   return (
     <>
+    <div id="stars"></div>
+    <div id="stars2"></div>
+    <div id="stars3"></div>
+    <div id="stars4"></div>
       <div>
         <button onClick={() => {
           logic.stopGame();
