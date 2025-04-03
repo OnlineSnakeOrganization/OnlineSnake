@@ -92,19 +92,19 @@ button:hover {
     position: absolute;
     top: 0;
     left: 0;
-    width: 100%;
-    height: 100%;
-    background-size: contain;
+    /*width: 100%;
+    height: 100%;*/
+    background-size: cover;
     background-position: center;
     background-repeat: repeat;
     z-index: 0;
 }
 
-@keyframes animStar {
+/*@keyframes animStar {
     from {
         transform: translateY(0);
     }
     to {
         transform: translateY(-100%);
     }
-}
+}*/

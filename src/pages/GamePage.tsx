@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useGame } from "../context/GameContext";
 import '../css/game.css';
+import '../css/stars.css';
 
 const GamePage: React.FC = () => {
   const navigate = useNavigate();
@@ -75,6 +76,10 @@ const GamePage: React.FC = () => {
 
   return (
     <>
+    <div id="stars"></div>
+      <div id="stars2"></div>
+      <div id="stars3"></div>
+      <div id="stars4"></div>
       <div>
         <button onClick={() => {
           endGame();
