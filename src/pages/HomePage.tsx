@@ -9,8 +9,23 @@ const HomePage: React.FC = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // JavaScript Code von CodePen hier einfügen, falls erforderlich
+    displayLeaderboard();
   }, []);
+
+  const displayLeaderboard = () => {
+    const leaderboard = JSON.parse(localStorage.getItem('leaderboard') || '[]');
+    const leaderboardContainer = document.querySelector('.leaderboard.left');
+    if (leaderboardContainer) {
+      leaderboardContainer.innerHTML = '<h3>Local Highscores</h3>';
+      leaderboard.forEach((entry: { name: string; score: number }) => {
+        const entryElement = document.createElement('div');
+        entryElement.textContent = `${entry.name}: ${entry.score}`;
+        leaderboardContainer.appendChild(entryElement);
+      });
+    } else {
+      console.error('Leaderboard container not found');
+    }
+  };
 
   return (
     <>
@@ -27,8 +42,14 @@ const HomePage: React.FC = () => {
           <input type="text" placeholder="Insert your name" id="playerName"></input>
         </div>
         <button onClick={() => {
-          startGame();      // Sets the ingame variable to true
-          navigate("/game") // Loads the game page
+          const playerName = (document.getElementById('playerName') as HTMLInputElement).value.trim();
+          if (playerName) {
+            localStorage.setItem('playerName', playerName); // Save player name to localStorage
+            startGame();      // Sets the ingame variable to true
+            navigate("/game"); // Loads the game page
+          } else {
+            alert("Please enter a valid name.");
+          }
         }}>Singleplayer</button>
         <button onClick={() => { }}>Multiplayer</button>
       </div>
