@@ -2,5 +2,6 @@
     width: 25px;
     height: 25px;
     background-color: #000000; /* Light color for squares */
-    border: 0.5px solid rgba(255, 255, 255, 0.077);
+    border: 0.5px solid rgba(0, 65, 115);
+    z-index: 1;
 }
