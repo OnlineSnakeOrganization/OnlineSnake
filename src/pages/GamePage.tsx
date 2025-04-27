@@ -30,7 +30,15 @@ const GamePage: React.FC = () => {
     if (!inGame) {
       navigate("/");
     } else {
-      const newLogic = new SinglePlayerLogic(rows, columns, false, setBlockColor, clearBoard, setCurrentSnakeLength, setPlayTime);
+      const newLogic = new SinglePlayerLogic(
+        rows,
+        columns,
+        false,
+        setBlockColor,
+        clearBoard,
+        setCurrentSnakeLength,
+        setPlayTime
+      );
       setLogic(newLogic);
       newLogic.start();
       return () => {

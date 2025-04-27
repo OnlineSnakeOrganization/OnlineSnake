@@ -44,7 +44,8 @@ class SinglePlayerLogic {
         }
         if (key.code === "KeyR") {
             const playerName = localStorage.getItem('playerName') || 'Unknown';
-            this.saveScore(playerName, this.snakeSegments.length);
+            const finalScore = Math.max(this.snakeSegments.length - 1, 0); // Decrement score by 1, ensure it's not negative
+            this.saveScore(playerName, finalScore);
             this.stopGame();
             this.start();
         }
@@ -111,7 +112,8 @@ class SinglePlayerLogic {
 
         if (this.isGameOver()) {
             const playerName = localStorage.getItem('playerName') || 'Unknown';
-            this.saveScore(playerName, this.snakeSegments.length);
+            const finalScore = Math.max(this.snakeSegments.length - 1, 0); // Decrement score by 1, ensure it's not negative
+            this.saveScore(playerName, finalScore);
             this.stopGame();
         } else {
             let justAteFood: boolean = false;
@@ -180,7 +182,7 @@ class SinglePlayerLogic {
         } else {
             leaderboard.push({ name, score });
         }
-        leaderboard.sort((a: LeaderboardEntry, b: LeaderboardEntry) => b.score - a.score); // Sortiere nach Punkten, absteigend
+        leaderboard.sort((a: LeaderboardEntry, b: LeaderboardEntry) => b.score - a.score); // Sort by score, descending
         localStorage.setItem('leaderboard', JSON.stringify(leaderboard));
     }
 
