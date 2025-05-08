@@ -1,3 +1,5 @@
+https://onlinesnakeorganization.github.io/OnlineSnake/ <- Link zum spielen
+
 # ReadMe OnlineSnake - To Do / Was ist zu tun
 ## Zwischenstand Nr | Datum | Status
 ## Zwischenstand 1 | 30.01.2025 | Fertig
