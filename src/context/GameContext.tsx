@@ -16,29 +16,32 @@ interface GameProviderProps {
 } 
 
 // Create the context
-const GameContext = createContext<GameState | undefined>(undefined);
+export const GameContext = createContext<GameState>({
+  inGame: false,
+  loadGame: () => {},
+  endGame: () => {}
+});
 
 // Create a provider component to make the state available
 export const GameProvider: React.FC<GameProviderProps> = ({ children }) => {
-  const [isInGame, setIsInGame] = useState(false);
+  const [inGame, setInGame] = useState(false);
 
-  const loadGame = () => {
-    setIsInGame(true);
+  const setInGameToTrue = () => {
+    setInGame(true);
   };
 
-  const endGame = () => {
-    setIsInGame(false);
+  const setInGameToFalse = () => {
+    setInGame(false);
   };
 
   return (
-    <GameContext.Provider value={{ inGame: isInGame, loadGame: loadGame, endGame }}>
+    <GameContext.Provider value={{ inGame: inGame, loadGame: setInGameToTrue, endGame: setInGameToFalse }}>
       {children} {/* Render the children passed to this provider */}
     </GameContext.Provider>
   );
 };
 
 // Custom hook to access the GameContext variables and methods
-// eslint-disable-next-line react-refresh/only-export-components
 export const useGame = () => {
   const context = useContext(GameContext);
   if (!context) {
