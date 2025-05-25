@@ -4,12 +4,15 @@ import StraightController from "./controllers/StraightController";
 import SnakeColorGradient from "./SnakeColorCalculator";
 export type SnakeSegment = {x: number, y: number, color: string};
 type Food = {x: number, y: number};
+type Obstacle = {x: number, y: number};
 type LeaderboardEntry = { name: string, score: number };
 
 class SinglePlayerLogic {
     private snakeSegments: SnakeSegment[];
     private food: Food[];
     private maxAmountOfFood: number;
+    private obstacles: Obstacle[];
+    private amountOfObstacles: number;
     public rows: number;
     public columns: number;
     public wallsAreDeadly: boolean;
@@ -40,7 +43,8 @@ class SinglePlayerLogic {
                     //Türkis Orange - "00ffff", "FF9100"
                     //Grün DunkelGrün - "00FF00", "006100"
                     //Rot Orange - "FF1900", "FF9100"
-        this.maxAmountOfFood = 20;
+        this.maxAmountOfFood = 1;
+        this.amountOfObstacles = 10
         this.stopWatch = new Stopwatch(displayTime);
         
         //We already refresh theese variables in the start method but the compiler isnt happy.
@@ -48,6 +52,7 @@ class SinglePlayerLogic {
         this.diagonalMovementAllowed = true;
         this.snakeSegments = [];
         this.food = [];
+        this.obstacles = [];
         this.controller = new StraightController(document, this);   //Compiler is angry if this is gone
      }
 
@@ -55,6 +60,7 @@ class SinglePlayerLogic {
         this.snakeDirection = "UP";
         this.snakeSegments = [];
         this.food = [];
+        this.obstacles = [];
         this.clearBoard();
         this.stopWatch.reset();
         this.stopWatch.start();
@@ -63,6 +69,7 @@ class SinglePlayerLogic {
 
         this.resetSnakeColors();
         this.displaySnakeLength(this.snakeSegments.length);
+        this.generateObstacles();
         this.generateFood();
         if(this.diagonalMovementAllowed){
             this.controller = new DiagonalController(document, this);
@@ -131,18 +138,20 @@ class SinglePlayerLogic {
     }
   
     private generateFood = (): void => {
-        let availableBlocksForNewFood: Food[] = [];   // An array of free blocks where food could spawn
-        for (let row = 0; row < this.rows; row++) {
+        let availableBlocksForNewFood: Food[] = [];     // An array of free blocks where food could spawn
+        for (let row = 0; row < this.rows; row++) {     // Fill it up
             for (let column = 0; column < this.columns; column++) {
-                const place: Food = { x: column, y: row };
-                availableBlocksForNewFood.push(place);
+                const availableBlock: Food = { x: column, y: row };
+                availableBlocksForNewFood.push(availableBlock);
             }
         }
-
+        // Then remove all the blocks which are already taken
         // Food cannot spawn where there are snake segments => Remove the blocks taken by the snake
         availableBlocksForNewFood = availableBlocksForNewFood.filter(block => !this.snakeSegments.some(segment => block.x === segment.x && block.y === segment.y));
         // Food cannot spawn on other food => Remove the blocks taken by other food
-        availableBlocksForNewFood = availableBlocksForNewFood.filter(place => !this.food.some(food => place.x === food.x && place.y === food.y));
+        availableBlocksForNewFood = availableBlocksForNewFood.filter(block => !this.food.some(food => block.x === food.x && block.y === food.y));
+        // Food cannot spawn on obstacles => Remove the blocks taken by obstacles
+        availableBlocksForNewFood = availableBlocksForNewFood.filter(block => !this.obstacles.some(obstacle => block.x === obstacle.x && block.y === obstacle.y));
 
         // Always make sure to spawn the maximum Amount of food allowed and possible
         while (this.food.length < this.maxAmountOfFood && availableBlocksForNewFood.length > 0) {
@@ -150,7 +159,25 @@ class SinglePlayerLogic {
             this.food.push({ ...availableBlocksForNewFood[randomIdx] });
 
             // Make this used block now unavailable
-            availableBlocksForNewFood = availableBlocksForNewFood.filter(place => !(place.x === availableBlocksForNewFood[randomIdx].x && place.y === availableBlocksForNewFood[randomIdx].y));
+            availableBlocksForNewFood = availableBlocksForNewFood.filter(block => !(block.x === availableBlocksForNewFood[randomIdx].x && block.y === availableBlocksForNewFood[randomIdx].y));
+        }
+    }
+
+    private generateObstacles = (): void =>{
+        let availableBlocksForObstacles: Obstacle[] = []
+        for (let row = 0; row < this.rows; row++) {     // Fill it up
+            for (let column = 0; column < this.columns; column++) {
+                const availableBlock: Obstacle = { x: column, y: row };
+                availableBlocksForObstacles.push(availableBlock);
+            }
+        }
+
+        while (this.obstacles.length < this.amountOfObstacles && availableBlocksForObstacles.length > 0) {
+            const randomIdx: number = Math.floor(Math.random() * availableBlocksForObstacles.length);
+            this.obstacles.push({ ...availableBlocksForObstacles[randomIdx] });
+
+            // Make this used block now unavailable
+            availableBlocksForObstacles = availableBlocksForObstacles.filter(block => !(block.x === availableBlocksForObstacles[randomIdx].x && block.y === availableBlocksForObstacles[randomIdx].y));
         }
     }
 
@@ -160,8 +187,13 @@ class SinglePlayerLogic {
         if (head.x < 0 || head.y < 0 || head.x >= this.columns || head.y >= this.rows) return true;
 
         // Check self collision
-        for (let i = 1; i < this.snakeSegments.length; i++) {   // Start i=1 because we don't compare the head to itself
-            if (head.x === this.snakeSegments[i].x && head.y === this.snakeSegments[i].y) return true;
+        for (const segment of this.snakeSegments.slice(1)){ // Skip the first segment because we don't compare the head to itself
+            if (head.x === segment.x && head.y === segment.y) return true;
+        }
+
+        // Check obstacle collision
+        for (const obstacle of this.obstacles){
+            if (head.x === obstacle.x && head.y === obstacle.y) return true;
         }
 
         return false;
@@ -173,8 +205,11 @@ class SinglePlayerLogic {
             this.setBlockColor(segment.x, segment.y, segment.color); 
             //Only recalculate colors when food was eaten
         }
+        for (const obstacle of this.obstacles) {
+            this.setBlockColor(obstacle.x, obstacle.y, "blue");
+        }
         for (const food of this.food) {
-            this.setBlockColor(food.x, food.y, "pink"); // Use color for food
+            this.setBlockColor(food.x, food.y, "pink");
         }
     }
     
