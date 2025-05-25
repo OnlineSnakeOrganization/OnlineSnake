@@ -37,14 +37,14 @@ class SinglePlayerLogic {
         this.setBlockColor = setBlockColor;
         this.clearBoard = clearBoard;
         this.displaySnakeLength = displaySnakeLength;
-        this.snakeColorGradient = new SnakeColorGradient("FF1900", "FF9100");
+        this.snakeColorGradient = new SnakeColorGradient("00ff00", "006600");
                     //Gold-Bone - "DCAD00", "D2CEBF"
                     //Blau Türkis - "0000ff", "00ffff"
                     //Türkis Orange - "00ffff", "FF9100"
                     //Grün DunkelGrün - "00FF00", "006100"
                     //Rot Orange - "FF1900", "FF9100"
         this.maxAmountOfFood = 1;
-        this.amountOfObstacles = 10
+        this.amountOfObstacles = 10;
         this.stopWatch = new Stopwatch(displayTime);
         
         //We already refresh theese variables in the start method but the compiler isnt happy.
@@ -187,8 +187,10 @@ class SinglePlayerLogic {
         if (head.x < 0 || head.y < 0 || head.x >= this.columns || head.y >= this.rows) return true;
 
         // Check self collision
-        for (const segment of this.snakeSegments.slice(1)){ // Skip the first segment because we don't compare the head to itself
-            if (head.x === segment.x && head.y === segment.y) return true;
+        for (let i = 1; i < this.snakeSegments.length-1; i++){
+            // Skip the first segment because we don't compare the head to itself
+            // Skip the last segment because it will move out of the way in the same tick.
+            if (head.x === this.snakeSegments[i].x && head.y === this.snakeSegments[i].y) return true;
         }
 
         // Check obstacle collision
