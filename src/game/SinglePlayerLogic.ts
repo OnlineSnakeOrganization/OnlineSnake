@@ -1,12 +1,14 @@
 import Stopwatch from "../game/Stopwatch";
 import DiagonalController from "./controllers/DiagonalController";
-import SnakeColorGradient from "./SnakeColorCalculator";
 import StraightController from "./controllers/StraightController";
+import SnakeColorGradient from "./SnakeColorCalculator";
 export type SnakeSegment = {x: number, y: number, color: string};
 type Food = {x: number, y: number};
-class SinglePlayerLogic{
+type LeaderboardEntry = { name: string, score: number };
+
+class SinglePlayerLogic {
     private snakeSegments: SnakeSegment[];
-    private food: Food[]
+    private food: Food[];
     private maxAmountOfFood: number;
     public rows: number;
     public columns: number;
@@ -21,13 +23,13 @@ class SinglePlayerLogic{
     public snakeDirection: string;  //The direction the snake is facing and sneaking towards if no key is held.
     private diagonalMovementAllowed: boolean;
     private controller: StraightController | DiagonalController;
-
+  
     private gameInterval: NodeJS.Timeout | undefined;
 
-    constructor(rows: number, columns: number, wallsAreDeadly: boolean,setBlockColor: (column: number, rows: number, newColor: string) => void, 
-                clearBoard:()=>void, displaySnakeLength:(length: number)=>void, displayTime:(time:string)=>void){
+    constructor(rows: number, columns: number, wallsAreDeadly: boolean, setBlockColor: (column: number, rows: number, newColor: string) => void,
+        clearBoard: () => void, displaySnakeLength: (length: number) => void, displayTime: (time: string) => void) {
         this.rows = rows;
-        this.columns = columns
+        this.columns = columns;
         this.wallsAreDeadly = wallsAreDeadly;
         this.setBlockColor = setBlockColor;
         this.clearBoard = clearBoard;
@@ -40,14 +42,14 @@ class SinglePlayerLogic{
                     //Rot Orange - "FF1900", "FF9100"
         this.maxAmountOfFood = 20;
         this.stopWatch = new Stopwatch(displayTime);
-
+        
         //We already refresh theese variables in the start method but the compiler isnt happy.
         this.snakeDirection = "UP";
         this.diagonalMovementAllowed = true;
         this.snakeSegments = [];
         this.food = [];
         this.controller = new StraightController(document, this);   //Compiler is angry if this is gone
-    }
+     }
 
     public start(): void {
         this.snakeDirection = "UP";
@@ -80,7 +82,7 @@ class SinglePlayerLogic{
         this.stopGame();
         this.controller.disable();
     }
-
+      
     private gameLoop = (): void => {    //Arrow Function because else "this" would be different
         // Create another Snakesegment
         const head = { ...this.snakeSegments[0] };
@@ -89,30 +91,32 @@ class SinglePlayerLogic{
         this.pullSnakeColorsToTheHead();    //To keep the colors after each movement.
 
         if (this.isGameOver()) {
+            const playerName = localStorage.getItem('playerName') || 'Unknown';
+            this.saveScore(playerName, this.snakeSegments.length);
             this.stopGame();
-        }else{
-            //Check if the snake eats food
+        } else {
+          //Check if the snake eats food
             let justAteFood: boolean = false;
             for (let i = 0; i < this.food.length; i++) {
-                if (head.x === this.food[i].x && head.y === this.food[i].y){
+                if (head.x === this.food[i].x && head.y === this.food[i].y) {
                     justAteFood = true;
                     this.food = this.food.filter(food => !(food.x === head.x && food.y === head.y));
                     break;
                 }
             }
-            if(justAteFood === true){
+            if (justAteFood === true) {
                 this.generateFood();
                 this.displaySnakeLength(this.snakeSegments.length);
                 this.resetSnakeColors();
-            }else{
-                const lastSegment: SnakeSegment = this.snakeSegments[this.snakeSegments.length-1];
+            } else {
+                const lastSegment: SnakeSegment = this.snakeSegments[this.snakeSegments.length - 1];
                 this.setBlockColor(lastSegment.x, lastSegment.y, "black")
                 this.snakeSegments.pop(); // Remove the tail if no food is eaten
             }
             this.drawBoard();
         }
     }
-
+  
     private resetSnakeColors = ():void =>{
         const snakeLength: number = this.snakeSegments.length;
         for(let i = 0; i < this.snakeSegments.length; i++){
@@ -125,27 +129,27 @@ class SinglePlayerLogic{
             this.snakeSegments[i-1].color = this.snakeSegments[i].color;
         }
     }
-
-    private generateFood = (): void =>{
-        let availableBlocksForNewFood: Food[] = [];   //An array of free blocks where food could spawn
+  
+    private generateFood = (): void => {
+        let availableBlocksForNewFood: Food[] = [];   // An array of free blocks where food could spawn
         for (let row = 0; row < this.rows; row++) {
             for (let column = 0; column < this.columns; column++) {
-                const place: Food = {x: column, y: row};
+                const place: Food = { x: column, y: row };
                 availableBlocksForNewFood.push(place);
             }
         }
-        
-        //Food cannot spawn where there are snake segments => Remove the blocks taken by the snake
+
+        // Food cannot spawn where there are snake segments => Remove the blocks taken by the snake
         availableBlocksForNewFood = availableBlocksForNewFood.filter(block => !this.snakeSegments.some(segment => block.x === segment.x && block.y === segment.y));
-        //Food cannot spawn on other food => Remove the blocks taken by other food
+        // Food cannot spawn on other food => Remove the blocks taken by other food
         availableBlocksForNewFood = availableBlocksForNewFood.filter(place => !this.food.some(food => place.x === food.x && place.y === food.y));
 
-        //Always make sure to spawn the maximum Amount of food allowed and possible
-        while(this.food.length < this.maxAmountOfFood && availableBlocksForNewFood.length > 0){ 
+        // Always make sure to spawn the maximum Amount of food allowed and possible
+        while (this.food.length < this.maxAmountOfFood && availableBlocksForNewFood.length > 0) {
             const randomIdx: number = Math.floor(Math.random() * availableBlocksForNewFood.length);
             this.food.push({ ...availableBlocksForNewFood[randomIdx] });
-            
-            //Make this used block now unavailable
+
+            // Make this used block now unavailable
             availableBlocksForNewFood = availableBlocksForNewFood.filter(place => !(place.x === availableBlocksForNewFood[randomIdx].x && place.y === availableBlocksForNewFood[randomIdx].y));
         }
     }
@@ -156,21 +160,48 @@ class SinglePlayerLogic{
         if (head.x < 0 || head.y < 0 || head.x >= this.columns || head.y >= this.rows) return true;
 
         // Check self collision
-        for (let i = 1; i < this.snakeSegments.length-1; i++) {   //Start i=1 because we dont compare the head to itself, also running into the tail is fine so length-1
+        for (let i = 1; i < this.snakeSegments.length; i++) {   // Start i=1 because we don't compare the head to itself
             if (head.x === this.snakeSegments[i].x && head.y === this.snakeSegments[i].y) return true;
         }
+
         return false;
     }
-
+  
     private drawBoard = (): void =>{
         for(let i = 0; i < this.snakeSegments.length; i++){
             const segment = this.snakeSegments[i];
             this.setBlockColor(segment.x, segment.y, segment.color); 
             //Only recalculate colors when food was eaten
         }
+        for (const food of this.food) {
+            this.setBlockColor(food.x, food.y, "pink"); // Use color for food
+        }
+    }
+    
+    saveScore(name: string, score: number) {
+        const leaderboard: LeaderboardEntry[] = JSON.parse(localStorage.getItem('leaderboard') || '[]');
+        const existingEntryIndex = leaderboard.findIndex(entry => entry.name === name);
+        if (existingEntryIndex !== -1) {
+            leaderboard[existingEntryIndex].score = Math.max(leaderboard[existingEntryIndex].score, score);
+        } else {
+            leaderboard.push({ name, score });
+        }
+        leaderboard.sort((a: LeaderboardEntry, b: LeaderboardEntry) => b.score - a.score); // Sortiere nach Punkten, absteigend
+        localStorage.setItem('leaderboard', JSON.stringify(leaderboard));
+    }
 
-        for(const food of this.food){
-            this.setBlockColor(food.x, food.y, "pink")
+    displayLeaderboard() {
+        const leaderboard: LeaderboardEntry[] = JSON.parse(localStorage.getItem('leaderboard') || '[]');
+        const leaderboardContainer = document.querySelector('.leaderboard.left');
+        if (leaderboardContainer) {
+            leaderboardContainer.innerHTML = '<h3>Local Highscores</h3>';
+            leaderboard.forEach((entry: LeaderboardEntry) => {
+                const entryElement = document.createElement('div');
+                entryElement.textContent = `${entry.name}: ${entry.score}`;
+                leaderboardContainer.appendChild(entryElement);
+            });
+        } else {
+            console.error('Leaderboard container not found');
         }
     }
 }

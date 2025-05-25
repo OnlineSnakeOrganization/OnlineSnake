@@ -8,6 +8,7 @@ body {
     font-family: 'MyCustomFont', sans-serif;
     margin: 0;
     position: relative;
+    overflow: hidden;
 }
 /*freude*/
 @font-face {
@@ -69,7 +70,7 @@ input[type="text"] {
     font-family: 'MyCustomFont';
 }
 
-button {
+button { 
     padding: 10px 20px;                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     
     font-size: 2em;
     cursor: pointer;
@@ -86,3 +87,22 @@ button {
 button:hover {
     background-color: #009a00b8;
 }
+
+#stars, #stars2, #stars3 {
+    position: absolute;
+    top: 0;
+    left: 0;
+    background-size: cover;
+    background-position: center;
+    background-repeat: repeat;
+    z-index: 0;
+}
+
+/*@keyframes animStar {
+    from {
+        transform: translateY(0);
+    }
+    to {
+        transform: translateY(-100%);
+    }
+}*/
