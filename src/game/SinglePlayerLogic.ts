@@ -123,7 +123,8 @@ class SinglePlayerLogic {
 
         if (this.isGameOver()) {
             const playerName = localStorage.getItem('playerName') || 'Unknown';
-            this.saveScore(playerName, this.snakeSegments.length);
+            this.saveScore(playerName, this.snakeSegments.length -1); // Leaderboard score fix
+            this.uploadScore(playerName, this.snakeSegments.length -1); // Leaderboard score fix
             this.killSnake
     ();
         } else {
@@ -308,5 +309,24 @@ class SinglePlayerLogic {
             console.error('Leaderboard container not found');
         }
     }
+
+    // WIP: Sends the score to the backend and updates the global leaderboard
+    uploadScore(name: string, score: number) {
+        fetch('http://localhost:3000/highscores', { // Must be replaced with the actual URL of the backend
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ playerName: name, score })
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log('Score uploaded successfully:', data);
+        })
+        .catch(error => {
+            console.error('Error uploading score:', error);
+        });
+    }
+
 }
 export default SinglePlayerLogic;
