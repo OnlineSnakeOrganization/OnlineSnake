@@ -34,7 +34,7 @@ const GamePage: React.FC = () => {
       setLogic(newLogic);
       newLogic.start();
       return () => {
-        newLogic.exit(); // Ensure the old logic instance is stopped
+        newLogic.exitGame(); // Ensure the old logic instance is stopped
       };
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -88,7 +88,7 @@ const GamePage: React.FC = () => {
       <div>
         <button onClick={() => {
           if (logic) {
-            logic.exit(); // Call exit method to stop the game
+            logic.exitGame(); // Call exitGame method to stop the game
           }
           endGame();
           navigate("/");

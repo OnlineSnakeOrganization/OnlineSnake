@@ -48,12 +48,12 @@ class DiagonalController implements ControllerInterface{
                 }
             }
             if(key.code === "KeyR"){
-                this.logic.stopGame();
+                this.logic.clearIntervals();
                 this.disable();
                 this.logic.start();
             }
             if(key.code === "Escape"){
-                this.logic.stopGame();
+                this.logic.killSnake();
             }
         };
         this.illegalInputHeld = "";
