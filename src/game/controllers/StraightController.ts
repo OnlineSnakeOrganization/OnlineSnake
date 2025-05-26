@@ -36,12 +36,12 @@ class StraightController implements ControllerInterface{
                 }
             }
             if(key.code === "KeyR"){
-                this.logic.stopGame();
+                this.logic.clearIntervals();
                 this.disable();
                 this.logic.start();
             }
             if(key.code === "Escape"){
-                this.logic.stopGame();
+                this.logic.killSnake();
             }
         };
         this.keyUpListener = (key: KeyboardEvent) =>{
@@ -96,7 +96,7 @@ class StraightController implements ControllerInterface{
     }
 
     private setSnakeDirectionToLatestInputIfAllowed(){
-        let newDirection: string = this.inputsHeld[0];
+        const newDirection: string = this.inputsHeld[0];
         if(newDirection){
             switch(this.logic.snakeDirection){
                 case "UP":

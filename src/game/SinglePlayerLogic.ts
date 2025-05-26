@@ -1,6 +1,7 @@
 import Stopwatch from "../game/Stopwatch";
 import DiagonalController from "./controllers/DiagonalController";
 import StraightController from "./controllers/StraightController";
+import MovingObstacle from "./MovingObstacle";
 import SnakeColorGradient from "./SnakeColorCalculator";
 export type SnakeSegment = {x: number, y: number, color: string};
 type Food = {x: number, y: number};
@@ -8,16 +9,19 @@ type Obstacle = {x: number, y: number};
 type LeaderboardEntry = { name: string, score: number };
 
 class SinglePlayerLogic {
-    private snakeSegments: SnakeSegment[];
-    private food: Food[];
+    public snakeSegments: SnakeSegment[];
+    public food: Food[];
     private maxAmountOfFood: number;
-    private obstacles: Obstacle[];
-    private amountOfObstacles: number;
+    public staticObstacles: Obstacle[];
+    private amountOfStaticObstacles: number;
+    public movingObstacles: MovingObstacle[];
+    private amountOfMovingObstacles: number;
+
     public rows: number;
     public columns: number;
     public wallsAreDeadly: boolean;
 
-    private setBlockColor: (row: number, column: number, newColor: string) => void;
+    public setBlockColor: (row: number, column: number, newColor: string) => void;
     private clearBoard: () => void;
     private displaySnakeLength: (length: number) => void;
     private stopWatch: Stopwatch
@@ -27,7 +31,8 @@ class SinglePlayerLogic {
     private diagonalMovementAllowed: boolean;
     private controller: StraightController | DiagonalController;
   
-    private gameInterval: NodeJS.Timeout | undefined;
+    private snakeInterval: NodeJS.Timeout | undefined;
+    private obstacleInterval: NodeJS.Timeout | undefined;
 
     constructor(rows: number, columns: number, wallsAreDeadly: boolean, setBlockColor: (column: number, rows: number, newColor: string) => void,
         clearBoard: () => void, displaySnakeLength: (length: number) => void, displayTime: (time: string) => void) {
@@ -44,7 +49,8 @@ class SinglePlayerLogic {
                     //Grün DunkelGrün - "00FF00", "006100"
                     //Rot Orange - "FF1900", "FF9100"
         this.maxAmountOfFood = 1;
-        this.amountOfObstacles = 10;
+        this.amountOfStaticObstacles = 7;
+        this.amountOfMovingObstacles = 3;
         this.stopWatch = new Stopwatch(displayTime);
         
         //We already refresh theese variables in the start method but the compiler isnt happy.
@@ -52,15 +58,24 @@ class SinglePlayerLogic {
         this.diagonalMovementAllowed = true;
         this.snakeSegments = [];
         this.food = [];
-        this.obstacles = [];
+        this.staticObstacles = [];
+        this.movingObstacles = []
         this.controller = new StraightController(document, this);   //Compiler is angry if this is gone
      }
 
     public start(): void {
+        if(typeof this.snakeInterval === "undefined"){
+            clearInterval(this.snakeInterval);
+        }
+        if(typeof this.obstacleInterval === "undefined"){
+            clearInterval(this.obstacleInterval);
+        }
+
         this.snakeDirection = "UP";
         this.snakeSegments = [];
         this.food = [];
-        this.obstacles = [];
+        this.staticObstacles = [];
+        this.movingObstacles = [];
         this.clearBoard();
         this.stopWatch.reset();
         this.stopWatch.start();
@@ -70,6 +85,7 @@ class SinglePlayerLogic {
         this.resetSnakeColors();
         this.displaySnakeLength(this.snakeSegments.length);
         this.generateObstacles();
+        this.generateMovingObstacles();
         this.generateFood();
         if(this.diagonalMovementAllowed){
             this.controller = new DiagonalController(document, this);
@@ -77,20 +93,28 @@ class SinglePlayerLogic {
             this.controller = new StraightController(document, this);
         }
         this.controller.enable();
-        this.gameInterval = setInterval(this.gameLoop, 125);
+        this.snakeInterval = setInterval(this.snakeLoop, 125);
+        this.obstacleInterval = setInterval(this.obstacleLoop, 1000);
+        this.drawBoard();
     }
 
-    public stopGame = (): void => {
-        clearInterval(this.gameInterval);
+    public killSnake = (): void => {
+        clearInterval(this.snakeInterval);
         this.stopWatch.stop();
     }
 
-    public exit = (): void =>{
-        this.stopGame();
+    public exitGame = (): void =>{
+        this.killSnake();
+        clearInterval(this.obstacleInterval);
         this.controller.disable();
     }
+
+    public clearIntervals = (): void =>{
+        clearInterval(this.snakeInterval);
+        clearInterval(this.obstacleInterval);
+    }
       
-    private gameLoop = (): void => {    //Arrow Function because else "this" would be different
+    private snakeLoop = (): void => {    //Arrow Function because else "this" would be different
         // Create another Snakesegment
         const head = { ...this.snakeSegments[0] };
         this.controller.moveHead(head);
@@ -100,7 +124,8 @@ class SinglePlayerLogic {
         if (this.isGameOver()) {
             const playerName = localStorage.getItem('playerName') || 'Unknown';
             this.saveScore(playerName, this.snakeSegments.length);
-            this.stopGame();
+            this.killSnake
+    ();
         } else {
           //Check if the snake eats food
             let justAteFood: boolean = false;
@@ -122,6 +147,13 @@ class SinglePlayerLogic {
             }
             this.drawBoard();
         }
+    }
+
+    private obstacleLoop = (): void => {
+        for(const obstacle of this.movingObstacles){
+            obstacle.moveObstacle();
+        }
+        this.drawBoard();
     }
   
     private resetSnakeColors = ():void =>{
@@ -147,24 +179,24 @@ class SinglePlayerLogic {
         }
         // Then remove all the blocks which are already taken
         // Food cannot spawn where there are snake segments => Remove the blocks taken by the snake
-        availableBlocksForNewFood = availableBlocksForNewFood.filter(block => !this.snakeSegments.some(segment => block.x === segment.x && block.y === segment.y));
+        availableBlocksForNewFood = availableBlocksForNewFood.filter(ob => !this.snakeSegments.some(segment => ob.x === segment.x && ob.y === segment.y));
         // Food cannot spawn on other food => Remove the blocks taken by other food
-        availableBlocksForNewFood = availableBlocksForNewFood.filter(block => !this.food.some(food => block.x === food.x && block.y === food.y));
-        // Food cannot spawn on obstacles => Remove the blocks taken by obstacles
-        availableBlocksForNewFood = availableBlocksForNewFood.filter(block => !this.obstacles.some(obstacle => block.x === obstacle.x && block.y === obstacle.y));
+        availableBlocksForNewFood = availableBlocksForNewFood.filter(ob => !this.food.some(food => ob.x === food.x && ob.y === food.y));
+        // Food cannot spawn on staticObstacles => Remove the blocks taken by staticObstacles
+        availableBlocksForNewFood = availableBlocksForNewFood.filter(ob => !this.staticObstacles.some(staticObstacle => ob.x === staticObstacle.x && ob.y === staticObstacle.y));
 
         // Always make sure to spawn the maximum Amount of food allowed and possible
         while (this.food.length < this.maxAmountOfFood && availableBlocksForNewFood.length > 0) {
             const randomIdx: number = Math.floor(Math.random() * availableBlocksForNewFood.length);
             this.food.push({ ...availableBlocksForNewFood[randomIdx] });
 
-            // Make this used block now unavailable
-            availableBlocksForNewFood = availableBlocksForNewFood.filter(block => !(block.x === availableBlocksForNewFood[randomIdx].x && block.y === availableBlocksForNewFood[randomIdx].y));
+            // Make this used ob now unavailable
+            availableBlocksForNewFood = availableBlocksForNewFood.filter(ob => !(ob.x === availableBlocksForNewFood[randomIdx].x && ob.y === availableBlocksForNewFood[randomIdx].y));
         }
     }
 
     private generateObstacles = (): void =>{
-        let availableBlocksForObstacles: Obstacle[] = []
+        let availableBlocksForObstacles: Obstacle[] = [];
         for (let row = 0; row < this.rows; row++) {     // Fill it up
             for (let column = 0; column < this.columns; column++) {
                 const availableBlock: Obstacle = { x: column, y: row };
@@ -172,12 +204,39 @@ class SinglePlayerLogic {
             }
         }
 
-        while (this.obstacles.length < this.amountOfObstacles && availableBlocksForObstacles.length > 0) {
+        while (this.staticObstacles.length < this.amountOfStaticObstacles
+     && availableBlocksForObstacles.length > 0) {
             const randomIdx: number = Math.floor(Math.random() * availableBlocksForObstacles.length);
-            this.obstacles.push({ ...availableBlocksForObstacles[randomIdx] });
+            this.staticObstacles.push({ ...availableBlocksForObstacles[randomIdx] });
 
-            // Make this used block now unavailable
-            availableBlocksForObstacles = availableBlocksForObstacles.filter(block => !(block.x === availableBlocksForObstacles[randomIdx].x && block.y === availableBlocksForObstacles[randomIdx].y));
+            // Make this used ob now unavailable
+            availableBlocksForObstacles = availableBlocksForObstacles.filter(ob => !(ob.x === availableBlocksForObstacles[randomIdx].x && ob.y === availableBlocksForObstacles[randomIdx].y));
+        }
+    }
+
+    private generateMovingObstacles = (): void =>{
+        const randomDirection = (): string => {
+            const directions = ["UP", "DOWN", "LEFT", "RIGHT"];
+            return directions[Math.floor(Math.random() * 4)];
+        };
+
+        let availableBlocksForMovingObstacles: MovingObstacle[] = [];
+        for (let row = 0; row < this.rows; row++) {     // Fill it up
+            for (let column = 0; column < this.columns; column++) {
+                const availableBlock: MovingObstacle = new MovingObstacle(this, {x: column, y: row}, randomDirection());
+                availableBlocksForMovingObstacles.push(availableBlock);
+            }
+        }
+
+        // Food cannot spawn on staticObstacles => Remove the blocks taken by staticObstacles
+        availableBlocksForMovingObstacles = availableBlocksForMovingObstacles.filter(ob => !this.staticObstacles.some(staticObstacle => ob.position.x === staticObstacle.x && ob.position.y === staticObstacle.y));
+
+        while (this.movingObstacles.length < this.amountOfMovingObstacles
+     &&     availableBlocksForMovingObstacles.length > 0) {
+            const randomIdx: number = Math.floor(Math.random() * availableBlocksForMovingObstacles.length);
+            this.movingObstacles.push(availableBlocksForMovingObstacles[randomIdx]);
+            // Make this used ob now unavailable
+            availableBlocksForMovingObstacles = availableBlocksForMovingObstacles.filter(ob => !(ob.position.x === availableBlocksForMovingObstacles[randomIdx].position.x && ob.position.y === availableBlocksForMovingObstacles[randomIdx].position.y));
         }
     }
 
@@ -193,9 +252,14 @@ class SinglePlayerLogic {
             if (head.x === this.snakeSegments[i].x && head.y === this.snakeSegments[i].y) return true;
         }
 
-        // Check obstacle collision
-        for (const obstacle of this.obstacles){
-            if (head.x === obstacle.x && head.y === obstacle.y) return true;
+        // Check staticObstacle collision
+        for (const staticObstacle of this.staticObstacles){
+            if (head.x === staticObstacle.x && head.y === staticObstacle.y) return true;
+        }
+
+        // Check movingObstacle collision
+        for (const movingObstacle of this.movingObstacles){
+            if (head.x === movingObstacle.position.x && head.y === movingObstacle.position.y) return true;
         }
 
         return false;
@@ -207,11 +271,14 @@ class SinglePlayerLogic {
             this.setBlockColor(segment.x, segment.y, segment.color); 
             //Only recalculate colors when food was eaten
         }
-        for (const obstacle of this.obstacles) {
-            this.setBlockColor(obstacle.x, obstacle.y, "blue");
+        for (const staticObstacle of this.staticObstacles) {
+            this.setBlockColor(staticObstacle.x, staticObstacle.y, "blue");
         }
         for (const food of this.food) {
             this.setBlockColor(food.x, food.y, "pink");
+        }
+        for (const movingObstacle of this.movingObstacles){
+            this.setBlockColor(movingObstacle.position.x, movingObstacle.position.y, "#30D5C8");
         }
     }
     
