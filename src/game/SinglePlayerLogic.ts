@@ -117,18 +117,22 @@ class SinglePlayerLogic {
     private snakeLoop = (): void => {    //Arrow Function because else "this" would be different
         // Create another Snakesegment
         const head = { ...this.snakeSegments[0] };
+        let oldHead = { ...this.snakeSegments[0] };
         this.controller.moveHead(head);
         this.snakeSegments.unshift(head);   //Add it to the front of the Snake
-        this.pullSnakeColorsToTheHead();    //To keep the colors after each movement.
 
         if (this.isGameOver()) {
             const playerName = localStorage.getItem('playerName') || 'Unknown';
+            this.saveScore(playerName, this.snakeSegments.length);
             this.saveScore(playerName, this.snakeSegments.length -1); // Leaderboard score fix
             this.uploadScore(playerName, this.snakeSegments.length -1); // Leaderboard score fix
-            this.killSnake
-    ();
+          
+            this.killSnake();
+            this.snakeSegments[0] = oldHead;
         } else {
-          //Check if the snake eats food
+            this.pullSnakeColorsToTheHead();    //To keep the colors after each movement.
+            
+            //Check if the snake eats food
             let justAteFood: boolean = false;
             for (let i = 0; i < this.food.length; i++) {
                 if (head.x === this.food[i].x && head.y === this.food[i].y) {
