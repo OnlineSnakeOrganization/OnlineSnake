@@ -1,15 +1,31 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useGame } from "../context/GameContext";
 import { useNavigate } from "react-router-dom";
 import '../css/home.css';
 import '../css/stars.css';
 
+interface Highscore {
+  playerName: string;
+  score: number;
+  timestamp: string;
+}
+
 const HomePage: React.FC = () => {
   const { loadGame: startGame } = useGame();
   const navigate = useNavigate();
 
+  const [globalHighscores, setGlobalHighscores] = useState<Highscore[]>([]);
+
   useEffect(() => {
     displayLeaderboard();
+
+    // Fetch global highscores from backend
+    fetch('http://localhost:3000/highscores')
+      .then(res => res.json())
+      .then((data: Highscore[]) => {
+        setGlobalHighscores(data);
+      })
+      .catch(() => setGlobalHighscores([]));
   }, []);
 
   const displayLeaderboard = () => {
@@ -55,6 +71,10 @@ const HomePage: React.FC = () => {
       </div>
       <div className="leaderboard right">
         <h3>Global Highscores</h3>
+        {globalHighscores.length === 0 && <div>No scores yet.</div>}
+        {globalHighscores.map((entry, idx) => (
+          <div key={idx}>{entry.playerName}: {entry.score}</div>
+        ))}
       </div>
     </>
   );
