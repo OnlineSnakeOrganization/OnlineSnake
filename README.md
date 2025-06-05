@@ -12,9 +12,9 @@ https://onlinesnakeorganization.github.io/OnlineSnake/ <- Link zum spielen
 - Bewegungslogik für die Schlange
 - Grundlegendes Punktesystem
 ### Sonstiges
-- 10 Minuten Präsentation pro Gruppe (Zwischenstand, Ideen, Probleme)
+- 10 Minuten Präsentation pro Gruppe (Zwischenstand)
 
-## Zwischenstand 3 | Termin folgt (2.Sem) | Zu tun
+## Zwischenstand 3 | 26.06.2025 | Fertig
 ### Zusätzliche Mindestanforderungen Frontend
 - Spielmechaniken (z. B. Game Over bei Kollision)
 - Zusätzliche Features wie Hindernisse oder Level
@@ -24,9 +24,9 @@ https://onlinesnakeorganization.github.io/OnlineSnake/ <- Link zum spielen
 - Mindestens 1 Demo-Endpunkt implementiert
 - Lokale Ausführung reicht aus
 ### Sonstiges
-- 10 Minuten Präsentation pro Gruppe (Funktionsdemo)
+- 10 Minuten Präsentation pro Gruppe (Zwischenstand, Funktionsdemo)
 
-## Zwischenstand 4 (Ende) | Termin folgt (2.Sem Ende) | Zu tun
+## Zwischenstand 4 (Ende) | 10.07.2025 | Zu tun
 ### Anforderungen Frontend
 - Komplett funktionsfähig mit persistenter Datenspeicherung
 - Persistente Datenspeicherung
