@@ -53,10 +53,12 @@ class MovingObstacle{
             ]);
         }
         
+
         if(!collisionDetected){
             this.logic.setBlockColor(this.position.x, this.position.y, "black");
             this.position = {x: new_x, y: new_y};
         }else{
+
             // Nur Richtung ändern, aber NICHT bewegen!
             switch(this.direction){
                 case "UP":
@@ -77,6 +79,7 @@ class MovingObstacle{
             }
             // Nach Richtungswechsel KEINE Bewegung in diesem Tick!
         }
+
     }
 
     private checkCollision(x: number, y: number, collidableObjects: {x: number, y: number}[]): boolean {

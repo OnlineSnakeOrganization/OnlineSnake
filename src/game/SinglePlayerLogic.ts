@@ -33,6 +33,7 @@ class SinglePlayerLogic {
   
     private snakeInterval: NodeJS.Timeout | undefined;
     private obstacleInterval: NodeJS.Timeout | undefined;
+
     private gameOverAudio: HTMLAudioElement | undefined;
     private backgroundMusic: HTMLAudioElement | undefined;
 
@@ -40,6 +41,7 @@ class SinglePlayerLogic {
 
     constructor(rows: number, columns: number, wallsAreDeadly: boolean, setBlockColor: (column: number, rows: number, newColor: string) => void,
         clearBoard: () => void, displaySnakeLength: (length: number) => void, displayTime: (time: string) => void, onGameOver?: () => void) {
+
         this.rows = rows;
         this.columns = columns;
         this.wallsAreDeadly = wallsAreDeadly;
@@ -65,6 +67,7 @@ class SinglePlayerLogic {
         this.staticObstacles = [];
         this.movingObstacles = []
         this.controller = new StraightController(document, this);   //Compiler is angry if this is gone
+
         this.gameOverAudio = new Audio("/src/assets/gameover.mp3");
         this.gameOverAudio.volume = 0.7;
         this.backgroundMusic = new Audio("/src/assets/background.mp3");
@@ -77,6 +80,7 @@ class SinglePlayerLogic {
         // Vor jedem Start: Intervals beenden, um doppelte zu verhindern
         clearInterval(this.snakeInterval);
         clearInterval(this.obstacleInterval);
+
 
         this.snakeDirection = "UP";
         this.snakeSegments = [];
@@ -103,13 +107,16 @@ class SinglePlayerLogic {
         this.snakeInterval = setInterval(this.snakeLoop, 125);
         this.obstacleInterval = setInterval(this.obstacleLoop, 1000);
         this.drawBoard();
+
         this.playBackgroundMusic();
-    }
+
 
     public killSnake = (): void => {
         clearInterval(this.snakeInterval);
         this.stopWatch.stop();
+
         this.stopBackgroundMusic();
+
     }
 
     public exitGame = (): void =>{
@@ -126,12 +133,15 @@ class SinglePlayerLogic {
     private snakeLoop = (): void => {    //Arrow Function because else "this" would be different
         // Create another Snakesegment
         const head = { ...this.snakeSegments[0] };
+
         const oldHead = { ...this.snakeSegments[0] };
+
         this.controller.moveHead(head);
         this.snakeSegments.unshift(head);   //Add it to the front of the Snake
 
         if (this.isGameOver()) {
             const playerName = localStorage.getItem('playerName') || 'Unknown';
+
             // Score = snakeSegments.length - 1 (Anzahl gegessener Nahrung)
             const score = Math.max(this.snakeSegments.length - 1, 0);
             this.playGameOverSound();
@@ -140,6 +150,7 @@ class SinglePlayerLogic {
             this.killSnake();
             this.snakeSegments[0] = oldHead;
             if (this.onGameOver) this.onGameOver();
+
         } else {
             this.pullSnakeColorsToTheHead();    //To keep the colors after each movement.
             
@@ -343,6 +354,7 @@ class SinglePlayerLogic {
         });
     }
 
+
     private playGameOverSound() {
         if (this.gameOverAudio) {
             this.gameOverAudio.currentTime = 0;
@@ -363,6 +375,7 @@ class SinglePlayerLogic {
             this.backgroundMusic.currentTime = 0;
         }
     }
+
 
 }
 export default SinglePlayerLogic;

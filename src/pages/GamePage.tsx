@@ -25,12 +25,15 @@ const GamePage: React.FC = () => {
   );
 
   const [logic, setLogic] = useState<SinglePlayerLogic | null>(null);
+
   const [showGameOverDialog, setShowGameOverDialog] = useState(false);
+
 
   useEffect(() => {
     if (!inGame) {
       navigate("/");
     } else {
+
       const newLogic = new SinglePlayerLogic(
         rows,
         columns,
@@ -41,6 +44,7 @@ const GamePage: React.FC = () => {
         setPlayTime,
         () => setShowGameOverDialog(true) // onGameOver Callback
       );
+
       setLogic(newLogic);
       newLogic.start();
       return () => {

@@ -36,3 +36,8 @@ vite.config.js
 
 # Testing
 coverage/
+node_modules/.vite/deps/_metadata.json
+node_modules/.vite/deps/_metadata.json
+node_modules/.vite/deps/_metadata.json
+node_modules/.vite
+node_modules/.vite/deps/react.js

@@ -75,6 +75,7 @@ const HomePage: React.FC = () => {
         {globalHighscores.map((entry, idx) => (
           <div key={idx}>{entry.playerName}: {entry.score}</div>
         ))}
+
       </div>
       <div className="help-icon" style={{position: 'fixed', bottom: 24, right: 24, zIndex: 10000, cursor: 'pointer'}} onClick={() => {
         if (document.getElementById('help-dialog')) return;
@@ -109,6 +110,7 @@ const HomePage: React.FC = () => {
           <circle cx="24" cy="24" r="22" fill="#222" stroke="#fff" strokeWidth="3"/>
           <text x="24" y="32" textAnchor="middle" fontSize="28" fill="#fff" fontFamily="Arial, sans-serif">?</text>
         </svg>
+
       </div>
     </>
   );

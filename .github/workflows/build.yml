@@ -18,13 +18,13 @@ jobs:
     steps:
       # 1. Check out the repository
       - name: Check out repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       # 2. Set up Node.js on the vm
       - name: Set up Node.js
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v4
         with:
-          node-version: '16'  # Node.js version is adjustable here
+          node-version: '22'  # Node.js version is adjustable here
 
       # 3. Install all dependencies that are used in the code
       - name: Install dependencies
