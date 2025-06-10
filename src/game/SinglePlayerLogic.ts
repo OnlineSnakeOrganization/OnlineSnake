@@ -36,8 +36,10 @@ class SinglePlayerLogic {
     private gameOverAudio: HTMLAudioElement | undefined;
     private backgroundMusic: HTMLAudioElement | undefined;
 
+    private onGameOver?: () => void;
+
     constructor(rows: number, columns: number, wallsAreDeadly: boolean, setBlockColor: (column: number, rows: number, newColor: string) => void,
-        clearBoard: () => void, displaySnakeLength: (length: number) => void, displayTime: (time: string) => void) {
+        clearBoard: () => void, displaySnakeLength: (length: number) => void, displayTime: (time: string) => void, onGameOver?: () => void) {
         this.rows = rows;
         this.columns = columns;
         this.wallsAreDeadly = wallsAreDeadly;
@@ -68,6 +70,7 @@ class SinglePlayerLogic {
         this.backgroundMusic = new Audio("/src/assets/background.mp3");
         this.backgroundMusic.loop = true;
         this.backgroundMusic.volume = 0.3;
+        this.onGameOver = onGameOver;
      }
 
     public start(): void {
@@ -136,7 +139,7 @@ class SinglePlayerLogic {
             this.uploadScore(playerName, score);
             this.killSnake();
             this.snakeSegments[0] = oldHead;
-            this.showGameOverDialog();
+            if (this.onGameOver) this.onGameOver();
         } else {
             this.pullSnakeColorsToTheHead();    //To keep the colors after each movement.
             
@@ -337,52 +340,6 @@ class SinglePlayerLogic {
         })
         .catch(error => {
             console.error('Error uploading score:', error);
-        });
-    }
-
-    private showGameOverDialog() {
-        if (document.getElementById('gameover-dialog')) return;
-        const dialog = document.createElement('div');
-        dialog.id = 'gameover-dialog';
-        dialog.style.position = 'fixed';
-        dialog.style.top = '50%';
-        dialog.style.left = '50%';
-        dialog.style.transform = 'translate(-50%, -50%)';
-        dialog.style.background = '#222';
-        dialog.style.color = 'white';
-        dialog.style.padding = '32px 24px';
-        dialog.style.borderRadius = '16px';
-        dialog.style.boxShadow = '0 0 20px #000a';
-        dialog.style.zIndex = '9999';
-        dialog.style.textAlign = 'center';
-        dialog.innerHTML = `
-            <h2>Game Over</h2>
-            <p>Play again or go back to menu?</p>
-            <button id="restart-btn" style="margin: 10px; padding: 10px 20px; font-size: 1.2em;">Restart</button>
-            <button id="menu-btn" style="margin: 10px; padding: 10px 20px; font-size: 1.2em;">Menu</button>
-        `;
-        document.body.appendChild(dialog);
-
-        // Keydown-Listener für R hinzufügen
-        const keyListener = (e: KeyboardEvent) => {
-            if ((e.key === 'r' || e.key === 'R')) {
-                e.preventDefault();
-                dialog.remove();
-                window.removeEventListener('keydown', keyListener);
-                this.start();
-            }
-        };
-        window.addEventListener('keydown', keyListener);
-
-        document.getElementById('restart-btn')?.addEventListener('click', () => {
-            dialog.remove();
-            window.removeEventListener('keydown', keyListener);
-            this.start();
-        });
-        document.getElementById('menu-btn')?.addEventListener('click', () => {
-            dialog.remove();
-            window.removeEventListener('keydown', keyListener);
-            window.location.href = '/';
         });
     }
 
