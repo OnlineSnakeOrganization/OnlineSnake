@@ -110,7 +110,7 @@ class SinglePlayerLogic {
 
         this.playBackgroundMusic();
 
-
+    }
     public killSnake = (): void => {
         clearInterval(this.snakeInterval);
         this.stopWatch.stop();
