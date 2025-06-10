@@ -148,7 +148,7 @@ const GamePage: React.FC = () => {
           textAlign: 'center',
         }}>
           <h2>Game Over</h2>
-          <p>Play again or go back to menu?</p>
+          <p></p>
           <button
             id="restart-btn"
             style={{ margin: '10px', padding: '10px 20px', fontSize: '1.2em' }}
