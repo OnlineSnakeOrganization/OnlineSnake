@@ -78,7 +78,11 @@ const HomePage: React.FC = () => {
 
       </div>
       <div className="help-icon" style={{position: 'fixed', bottom: 24, right: 24, zIndex: 10000, cursor: 'pointer'}} onClick={() => {
-        if (document.getElementById('help-dialog')) return;
+        const existingDialog = document.getElementById('help-dialog');
+        if (existingDialog) {
+          existingDialog.remove();
+          return;
+        }
         const dialog = document.createElement('div');
         dialog.id = 'help-dialog';
         dialog.style.position = 'fixed';
@@ -94,12 +98,55 @@ const HomePage: React.FC = () => {
         dialog.innerHTML = `
           <h3>Controls</h3>
           <ul style='padding: 0; margin: 0; list-style-position: inside; display: inline-block; text-align: left;'>
-            <li style='margin-bottom: 6px;'>Arrows or W/A/S/D: Movement</li>
-            <li style='margin-bottom: 6px;'>R: Restart</li>
-            <li>ESC: Exit game</li>
+            
           </ul>
+          <div style='margin: 18px 0 0 0; text-align:center; font-size:1.1em; font-weight:bold;'>Movement</div>
+          <div style='margin: 8px 0 0 0; display: flex; flex-direction: row; justify-content: center; align-items: flex-start; gap: 40px;'>
+            <div style='display: flex; flex-direction: column; align-items: center;'>
+              <span style='font-size: 0.95em; margin-bottom: 4px;'>Arrows</span>
+              <svg width="70" height="48" viewBox="0 0 70 48" style="display:block;" xmlns="http://www.w3.org/2000/svg">
+                <rect x="27" y="2" width="16" height="16" rx="4" fill="#444" stroke="#fff" stroke-width="2"/>
+                <polygon points="35,8 39,12 31,12" fill="#fff"/>
+                <rect x="7" y="30" width="16" height="16" rx="4" fill="#444" stroke="#fff" stroke-width="2"/>
+                <polygon points="15,38 19,42 11,42" fill="#fff"/>
+                <rect x="27" y="30" width="16" height="16" rx="4" fill="#444" stroke="#fff" stroke-width="2"/>
+                <polygon points="35,38 39,42 31,42" fill="#fff"/>
+                <rect x="47" y="30" width="16" height="16" rx="4" fill="#444" stroke="#fff" stroke-width="2"/>
+                <polygon points="55,38 59,42 51,42" fill="#fff"/>
+              </svg>
+            </div>
+            <div style='display: flex; flex-direction: column; align-items: center;'>
+              <span style='font-size: 0.95em; margin-bottom: 4px;'>WASD</span>
+              <svg width="70" height="48" viewBox="0 0 70 48" style="display:block;" xmlns="http://www.w3.org/2000/svg">
+                <rect x="27" y="2" width="16" height="16" rx="4" fill="#444" stroke="#fff" stroke-width="2"/>
+                <text x="35" y="15" text-anchor="middle" font-size="13" fill="#fff" font-family="Arial">W</text>
+                <rect x="7" y="30" width="16" height="16" rx="4" fill="#444" stroke="#fff" stroke-width="2"/>
+                <text x="15" y="43" text-anchor="middle" font-size="13" fill="#fff" font-family="Arial">A</text>
+                <rect x="27" y="30" width="16" height="16" rx="4" fill="#444" stroke="#fff" stroke-width="2"/>
+                <text x="35" y="43" text-anchor="middle" font-size="13" fill="#fff" font-family="Arial">S</text>
+                <rect x="47" y="30" width="16" height="16" rx="4" fill="#444" stroke="#fff" stroke-width="2"/>
+                <text x="55" y="43" text-anchor="middle" font-size="13" fill="#fff" font-family="Arial">D</text>
+              </svg>
+            </div>
+          </div>
+          <div style='margin: 18px 0 0 0; display: flex; flex-direction: row; justify-content: center; gap: 32px;'>
+            <div style='display: flex; flex-direction: column; align-items: center;'>
+              <span style='font-size: 0.95em; margin-bottom: 4px;'>Restart</span>
+              <svg width="36" height="36" viewBox="0 0 36 36" style="display:block;" xmlns="http://www.w3.org/2000/svg">
+                <rect x="4" y="4" width="28" height="28" rx="6" fill="#444" stroke="#fff" stroke-width="2"/>
+                <text x="18" y="25" text-anchor="middle" font-size="18" fill="#fff" font-family="Arial">R</text>
+              </svg>
+            </div>
+            <div style='display: flex; flex-direction: column; align-items: center;'>
+              <span style='font-size: 0.95em; margin-bottom: 4px;'>Exit</span>
+              <svg width="36" height="36" viewBox="0 0 36 36" style="display:block;" xmlns="http://www.w3.org/2000/svg">
+                <rect x="4" y="4" width="28" height="28" rx="6" fill="#444" stroke="#fff" stroke-width="2"/>
+                <text x="18" y="25" text-anchor="middle" font-size="16" fill="#fff" font-family="Arial">ESC</text>
+              </svg>
+            </div>
+          </div>
           <br />
-          <button id="close-help-btn" style="margin-top: 14px; padding: 6px 18px; font-size: 1em;">Schließen</button>
+          <button id="close-help-btn" style="margin-top: 14px; padding: 6px 18px; font-size: 1em;">Close</button>
         `;
         document.body.appendChild(dialog);
         document.getElementById('close-help-btn')?.addEventListener('click', () => {

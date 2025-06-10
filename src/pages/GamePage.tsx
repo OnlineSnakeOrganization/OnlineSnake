@@ -107,6 +107,19 @@ const GamePage: React.FC = () => {
     return () => window.removeEventListener('keydown', keyListener);
   }, [showGameOverDialog, logic]);
 
+  // ESC key: Exit to menu
+  useEffect(() => {
+    const escListener = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        if (logic) logic.exitGame();
+        endGame();
+        navigate("/");
+      }
+    };
+    window.addEventListener('keydown', escListener);
+    return () => window.removeEventListener('keydown', escListener);
+  }, [logic, endGame, navigate]);
+
   return (
     <>
       <div id="stars"></div>
@@ -114,13 +127,7 @@ const GamePage: React.FC = () => {
       <div id="stars3"></div>
       <div id="stars4"></div>
       <div>
-        <button onClick={() => {
-          if (logic) {
-            logic.exitGame(); // Call exitGame method to stop the game
-          }
-          endGame();
-          navigate("/");
-        }}>Back to Main</button>
+        
         <p>Length: {currentSnakeLength}</p>
         <p>Time: {playTime}</p>
       </div>
@@ -148,7 +155,7 @@ const GamePage: React.FC = () => {
           textAlign: 'center',
         }}>
           <h2>Game Over</h2>
-          <p>Play again or go back to menu?</p>
+          <p></p>
           <button
             id="restart-btn"
             style={{ margin: '10px', padding: '10px 20px', fontSize: '1.2em' }}
