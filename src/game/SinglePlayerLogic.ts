@@ -68,9 +68,10 @@ class SinglePlayerLogic {
         this.movingObstacles = []
         this.controller = new StraightController(document, this);   //Compiler is angry if this is gone
 
-        this.gameOverAudio = new Audio("/src/assets/gameover.mp3");
+        // Audio-Dateien korrekt laden (Vite/React: Asset-Import)
+        this.gameOverAudio = new Audio(new URL("../assets/gameover.mp3", import.meta.url).href);
         this.gameOverAudio.volume = 0.7;
-        this.backgroundMusic = new Audio("/src/assets/background.mp3");
+        this.backgroundMusic = new Audio(new URL("../assets/background.mp3", import.meta.url).href);
         this.backgroundMusic.loop = true;
         this.backgroundMusic.volume = 0.3;
         this.onGameOver = onGameOver;
