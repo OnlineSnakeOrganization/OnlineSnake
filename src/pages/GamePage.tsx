@@ -26,11 +26,25 @@ const GamePage: React.FC = () => {
 
   const [logic, setLogic] = useState<SinglePlayerLogic | null>(null);
 
+  const [showGameOverDialog, setShowGameOverDialog] = useState(false);
+
+
   useEffect(() => {
     if (!inGame) {
       navigate("/");
     } else {
-      const newLogic = new SinglePlayerLogic(rows, columns, false, setBlockColor, clearBoard, setCurrentSnakeLength, setPlayTime);
+
+      const newLogic = new SinglePlayerLogic(
+        rows,
+        columns,
+        false,
+        setBlockColor,
+        clearBoard,
+        setCurrentSnakeLength,
+        setPlayTime,
+        () => setShowGameOverDialog(true) // onGameOver Callback
+      );
+
       setLogic(newLogic);
       newLogic.start();
       return () => {
@@ -79,6 +93,20 @@ const GamePage: React.FC = () => {
     });
   };
 
+  // GameOver Dialog Overlay
+  useEffect(() => {
+    if (!showGameOverDialog) return;
+    const keyListener = (e: KeyboardEvent) => {
+      if (e.key === 'r' || e.key === 'R') {
+        e.preventDefault();
+        setShowGameOverDialog(false);
+        logic?.start();
+      }
+    };
+    window.addEventListener('keydown', keyListener);
+    return () => window.removeEventListener('keydown', keyListener);
+  }, [showGameOverDialog, logic]);
+
   return (
     <>
       <div id="stars"></div>
@@ -105,6 +133,42 @@ const GamePage: React.FC = () => {
       }}>
         {renderBoard()}
       </div>
+      {showGameOverDialog && (
+        <div id="gameover-dialog" style={{
+          position: 'fixed',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          background: '#222',
+          color: 'white',
+          padding: '32px 24px',
+          borderRadius: '16px',
+          boxShadow: '0 0 20px #000a',
+          zIndex: 9999,
+          textAlign: 'center',
+        }}>
+          <h2>Game Over</h2>
+          <p>Play again or go back to menu?</p>
+          <button
+            id="restart-btn"
+            style={{ margin: '10px', padding: '10px 20px', fontSize: '1.2em' }}
+            onClick={() => {
+              setShowGameOverDialog(false);
+              logic?.start();
+            }}
+          >Restart</button>
+          <button
+            id="menu-btn"
+            style={{ margin: '10px', padding: '10px 20px', fontSize: '1.2em' }}
+            onClick={() => {
+              setShowGameOverDialog(false);
+              if (logic) logic.exitGame();
+              endGame();
+              navigate("/");
+            }}
+          >Menu</button>
+        </div>
+      )}
     </>
   );
 };
