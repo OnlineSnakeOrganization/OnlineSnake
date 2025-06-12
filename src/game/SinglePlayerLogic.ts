@@ -39,13 +39,20 @@ class SinglePlayerLogic {
 
     private onGameOver?: () => void;
 
-    constructor(rows: number, columns: number, wallsAreDeadly: boolean, setBlockColor: (column: number, rows: number, newColor: string) => void,
-        clearBoard: () => void, displaySnakeLength: (length: number) => void, displayTime: (time: string) => void, onGameOver?: () => void) {
-
+    constructor(
+        rows: number,
+        columns: number,
+        wallsAreDeadly: boolean,
+        setBlockColor: (row: number, column: number, newColor: string) => void, // <-- Reihenfolge geändert!
+        clearBoard: () => void,
+        displaySnakeLength: (length: number) => void,
+        displayTime: (time: string) => void,
+        onGameOver?: () => void
+    ) {
         this.rows = rows;
         this.columns = columns;
         this.wallsAreDeadly = wallsAreDeadly;
-        this.setBlockColor = setBlockColor;
+        this.setBlockColor = setBlockColor; // Reihenfolge passt jetzt!
         this.clearBoard = clearBoard;
         this.displaySnakeLength = displaySnakeLength;
         this.snakeColorGradient = new SnakeColorGradient("00ff00", "006600");
@@ -170,7 +177,7 @@ class SinglePlayerLogic {
                 this.resetSnakeColors();
             } else {
                 const lastSegment: SnakeSegment = this.snakeSegments[this.snakeSegments.length - 1];
-                this.setBlockColor(lastSegment.x, lastSegment.y, "black")
+                this.setBlockColor(lastSegment.y, lastSegment.x, "black") // <-- Reihenfolge geändert!
                 this.snakeSegments.pop(); // Remove the tail if no food is eaten
             }
             this.drawBoard();
@@ -296,17 +303,16 @@ class SinglePlayerLogic {
     private drawBoard = (): void =>{
         for(let i = 0; i < this.snakeSegments.length; i++){
             const segment = this.snakeSegments[i];
-            this.setBlockColor(segment.x, segment.y, segment.color); 
-            //Only recalculate colors when food was eaten
+            this.setBlockColor(segment.y, segment.x, segment.color); // <-- Reihenfolge geändert!
         }
         for (const staticObstacle of this.staticObstacles) {
-            this.setBlockColor(staticObstacle.x, staticObstacle.y, "blue");
+            this.setBlockColor(staticObstacle.y, staticObstacle.x, "blue"); // <-- Reihenfolge geändert!
         }
         for (const food of this.food) {
-            this.setBlockColor(food.x, food.y, "pink");
+            this.setBlockColor(food.y, food.x, "pink"); // <-- Reihenfolge geändert!
         }
         for (const movingObstacle of this.movingObstacles){
-            this.setBlockColor(movingObstacle.position.x, movingObstacle.position.y, "#30D5C8");
+            this.setBlockColor(movingObstacle.position.y, movingObstacle.position.x, "#30D5C8"); // <-- Reihenfolge geändert!
         }
     }
     

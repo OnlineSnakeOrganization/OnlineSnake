@@ -55,7 +55,7 @@ class MovingObstacle{
         
 
         if(!collisionDetected){
-            this.logic.setBlockColor(this.position.x, this.position.y, "black");
+            this.logic.setBlockColor(this.position.y, this.position.x, "black"); // <-- Reihenfolge korrigiert!
             this.position = {x: new_x, y: new_y};
         }else{
 
