@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, {useContext, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { GameContext } from "../context/GameContext";
 import '../css/game.css';
@@ -12,22 +12,15 @@ const GamePage: React.FC = () => {
   const columns = 15;  // Number of columns
   const blockWidth: number = 30;
   const blockHeight: number = 30;
+  const canvasRef = useRef<HTMLCanvasElement>(null);
   const [currentSnakeLength, setCurrentSnakeLength] = useState(1);
   const [playTime, setPlayTime] = useState("");
 
-  const [blocks, setBlocks] = useState(
-    Array.from({ length: rows }, (_, row) =>
-      Array.from({ length: columns }, (_, col) => (
-        {
-          key: `${row}-${col}`,
-          color: "black"
-        })))
-  );
+  
 
   const [logic, setLogic] = useState<SinglePlayerLogic | null>(null);
 
   const [showGameOverDialog, setShowGameOverDialog] = useState(false);
-
 
   useEffect(() => {
     if (!inGame) {
@@ -38,8 +31,8 @@ const GamePage: React.FC = () => {
         rows,
         columns,
         false,
-        setBlockColor,
-        clearBoard,
+        () => {}, //Dummy setBlockColor
+        () => {}, //Dummy clearBoard 
         setCurrentSnakeLength,
         setPlayTime,
         () => setShowGameOverDialog(true) // onGameOver Callback
@@ -53,45 +46,6 @@ const GamePage: React.FC = () => {
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [inGame]); // Add inGame as dependency to reinitialize logic when game starts
-
-  function clearBoard() {
-    setBlocks(
-      Array.from({ length: rows }, (_, row) =>
-        Array.from({ length: columns }, (_, col) => (
-          {
-            key: `${row}-${col}`,
-            color: "black",
-          })))
-    );
-  }
-
-  function setBlockColor(column: number, row: number, newColor: string) {
-    setBlocks((prevBlocksArray) =>
-      prevBlocksArray.map((rowArray, r) =>
-        r === row
-          ? rowArray.map((block, c) =>
-              c === column ? { ...block, color: newColor } : block
-            )
-          : rowArray
-      )
-    );
-  }
-
-  const renderBoard = () => {
-    return blocks.flat().map(({ key, color }) => {
-      return (
-        <div
-          key={key}
-          className={"block"}
-          style={{
-            backgroundColor: color,
-            width: blockWidth,
-            height: blockHeight,
-          }}
-        />
-      );
-    });
-  };
 
   // GameOver Dialog Overlay
   useEffect(() => {
@@ -107,6 +61,12 @@ const GamePage: React.FC = () => {
     return () => window.removeEventListener('keydown', keyListener);
   }, [showGameOverDialog, logic]);
 
+  useEffect(() =>{
+    if (showGameOverDialog){
+      drawBoard(); //Canvas wird geleert, wenn GameOver Dialog angezeigt wird
+    }
+  }, [showGameOverDialog]);
+
   // ESC key: Exit to menu
   useEffect(() => {
     const escListener = (e: KeyboardEvent) => {
@@ -120,6 +80,50 @@ const GamePage: React.FC = () => {
     return () => window.removeEventListener('keydown', escListener);
   }, [logic, endGame, navigate]);
 
+  function drawBoard(){
+    const ctx = canvasRef.current?.getContext("2d");
+  if (!ctx || !logic) return;
+
+  // Hintergrund
+  ctx.fillStyle = "black";
+  ctx.fillRect(0, 0, columns * blockWidth, rows * blockHeight);
+
+  // Snake zeichnen
+  logic.snakeSegments.forEach(segment => {
+    ctx.fillStyle = segment.color || "lime";
+    ctx.fillRect(segment.x * blockWidth, segment.y * blockHeight, blockWidth, blockHeight);
+  });
+
+  // Food zeichnen
+  if (logic.food) {
+    logic.food.forEach(food => {
+      ctx.fillStyle = "red";
+      ctx.fillRect(food.x * blockWidth, food.y * blockHeight, blockWidth, blockHeight);
+    });
+  }
+
+  // Statische Hindernisse
+  if (logic.staticObstacles) {
+    logic.staticObstacles.forEach(ob => {
+      ctx.fillStyle = "blue";
+      ctx.fillRect(ob.x * blockWidth, ob.y * blockHeight, blockWidth, blockHeight);
+    });
+  }
+
+  // Bewegliche Hindernisse (falls vorhanden)
+  if (logic.movingObstacles) {
+    logic.movingObstacles.forEach(ob => {
+      ctx.fillStyle = "#30D5C8";
+      ctx.fillRect(ob.position.x * blockWidth, ob.position.y * blockHeight, blockWidth, blockHeight);
+    });
+  }
+  }
+
+  useEffect(() => {
+    drawBoard();
+  }, [logic, currentSnakeLength, playTime, showGameOverDialog]);
+  
+
   return (
     <>
       <div id="stars"></div>
@@ -131,7 +135,7 @@ const GamePage: React.FC = () => {
         <p>Length: {currentSnakeLength}</p>
         <p>Time: {playTime}</p>
       </div>
-      <div className="gameMap" style={{
+      {/*<div className="gameMap" style={{
         display: "grid",
         gridTemplateColumns: `repeat(${columns}, ${blockWidth}px)`,
         gridTemplateRows: `repeat(${rows}, ${blockHeight}px)`,
@@ -139,7 +143,22 @@ const GamePage: React.FC = () => {
         height: `${rows * blockHeight}px`,
       }}>
         {renderBoard()}
+      </div>*/}
+
+      <div className = "gameMap" style = {{
+        width: `${columns * blockWidth}px`,
+        height: `${rows * blockHeight}px`,
+        background: "black",
+        position: "relative",
+      }}>
+        <canvas
+        ref = {canvasRef}
+        width = {columns * blockWidth}
+        height = {rows * blockHeight}
+        style = {{display: "block"}}
+        />
       </div>
+
       {showGameOverDialog && (
         <div id="gameover-dialog" style={{
           position: 'fixed',
