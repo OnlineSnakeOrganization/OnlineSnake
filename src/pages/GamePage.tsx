@@ -77,7 +77,7 @@ const GamePage: React.FC = () => {
   useEffect(() => {
     if (logic) {
       logic.start();
-      drawBoard();
+      // drawBoard();  // <-- Entfernen!
     }
   }, [logic]);
 
