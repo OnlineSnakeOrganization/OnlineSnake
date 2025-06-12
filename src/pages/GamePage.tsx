@@ -1,51 +1,78 @@
-import React, {useContext, useEffect, useRef, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { GameContext } from "../context/GameContext";
 import '../css/game.css';
 import '../css/stars.css';
 import SinglePlayerLogic from "../game/SinglePlayerLogic";
 
+const rows = 15;
+const columns = 15;
+const blockWidth = 30;
+const blockHeight = 30;
+
+type Block = { key: string, color: string };
+
 const GamePage: React.FC = () => {
   const navigate = useNavigate();
   const { inGame, endGame } = useContext(GameContext);
-  const rows = 15;     // Number of rows
-  const columns = 15;  // Number of columns
-  const blockWidth: number = 30;
-  const blockHeight: number = 30;
-  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  // 2D-Array für die Blockfarben
+  const [blocks, setBlocks] = useState<Block[][]>(
+    Array.from({ length: rows }, (_, y) =>
+      Array.from({ length: columns }, (_, x) => ({
+        key: `${x},${y}`,
+        color: "black"
+      }))
+    )
+  );
+
   const [currentSnakeLength, setCurrentSnakeLength] = useState(1);
   const [playTime, setPlayTime] = useState("");
-
-  
-
   const [logic, setLogic] = useState<SinglePlayerLogic | null>(null);
-
   const [showGameOverDialog, setShowGameOverDialog] = useState(false);
+
+  // Hilfsfunktionen für das Block-Grid
+  const setBlockColor = (row: number, column: number, newColor: string) => {
+    setBlocks(prev =>
+      prev.map((rowArr, y) =>
+        rowArr.map((block, x) =>
+          y === row && x === column ? { ...block, color: newColor } : block
+        )
+      )
+    );
+  };
+
+  const clearBoard = () => {
+    setBlocks(Array.from({ length: rows }, (_, y) =>
+      Array.from({ length: columns }, (_, x) => ({
+        key: `${x},${y}`,
+        color: "black"
+      }))
+    ));
+  };
 
   useEffect(() => {
     if (!inGame) {
       navigate("/");
     } else {
-
       const newLogic = new SinglePlayerLogic(
         rows,
         columns,
         false,
-        () => {}, //Dummy setBlockColor
-        () => {}, //Dummy clearBoard 
+        setBlockColor,
+        clearBoard,
         setCurrentSnakeLength,
         setPlayTime,
-        () => setShowGameOverDialog(true) // onGameOver Callback
+        () => setShowGameOverDialog(true)
       );
-
       setLogic(newLogic);
       newLogic.start();
       return () => {
-        newLogic.exitGame(); // Ensure the old logic instance is stopped
+        newLogic.exitGame();
       };
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [inGame]); // Add inGame as dependency to reinitialize logic when game starts
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [inGame]);
 
   // GameOver Dialog Overlay
   useEffect(() => {
@@ -61,12 +88,6 @@ const GamePage: React.FC = () => {
     return () => window.removeEventListener('keydown', keyListener);
   }, [showGameOverDialog, logic]);
 
-  useEffect(() =>{
-    if (showGameOverDialog){
-      drawBoard(); //Canvas wird geleert, wenn GameOver Dialog angezeigt wird
-    }
-  }, [showGameOverDialog]);
-
   // ESC key: Exit to menu
   useEffect(() => {
     const escListener = (e: KeyboardEvent) => {
@@ -80,49 +101,20 @@ const GamePage: React.FC = () => {
     return () => window.removeEventListener('keydown', escListener);
   }, [logic, endGame, navigate]);
 
-  function drawBoard(){
-    const ctx = canvasRef.current?.getContext("2d");
-  if (!ctx || !logic) return;
-
-  // Hintergrund
-  ctx.fillStyle = "black";
-  ctx.fillRect(0, 0, columns * blockWidth, rows * blockHeight);
-
-  // Snake zeichnen
-  logic.snakeSegments.forEach(segment => {
-    ctx.fillStyle = segment.color || "lime";
-    ctx.fillRect(segment.x * blockWidth, segment.y * blockHeight, blockWidth, blockHeight);
-  });
-
-  // Food zeichnen
-  if (logic.food) {
-    logic.food.forEach(food => {
-      ctx.fillStyle = "red";
-      ctx.fillRect(food.x * blockWidth, food.y * blockHeight, blockWidth, blockHeight);
-    });
-  }
-
-  // Statische Hindernisse
-  if (logic.staticObstacles) {
-    logic.staticObstacles.forEach(ob => {
-      ctx.fillStyle = "blue";
-      ctx.fillRect(ob.x * blockWidth, ob.y * blockHeight, blockWidth, blockHeight);
-    });
-  }
-
-  // Bewegliche Hindernisse (falls vorhanden)
-  if (logic.movingObstacles) {
-    logic.movingObstacles.forEach(ob => {
-      ctx.fillStyle = "#30D5C8";
-      ctx.fillRect(ob.position.x * blockWidth, ob.position.y * blockHeight, blockWidth, blockHeight);
-    });
-  }
-  }
-
-  useEffect(() => {
-    drawBoard();
-  }, [logic, currentSnakeLength, playTime, showGameOverDialog]);
-  
+  // Board-Rendering
+  const renderBoard = () => {
+    return blocks.flat().map(({ key, color }) => (
+      <div
+        key={key}
+        className="block"
+        style={{
+          backgroundColor: color,
+          width: blockWidth,
+          height: blockHeight,
+        }}
+      />
+    ));
+  };
 
   return (
     <>
@@ -131,11 +123,10 @@ const GamePage: React.FC = () => {
       <div id="stars3"></div>
       <div id="stars4"></div>
       <div>
-        
         <p>Length: {currentSnakeLength}</p>
         <p>Time: {playTime}</p>
       </div>
-      {/*<div className="gameMap" style={{
+      <div className="gameMap" style={{
         display: "grid",
         gridTemplateColumns: `repeat(${columns}, ${blockWidth}px)`,
         gridTemplateRows: `repeat(${rows}, ${blockHeight}px)`,
@@ -143,22 +134,7 @@ const GamePage: React.FC = () => {
         height: `${rows * blockHeight}px`,
       }}>
         {renderBoard()}
-      </div>*/}
-
-      <div className = "gameMap" style = {{
-        width: `${columns * blockWidth}px`,
-        height: `${rows * blockHeight}px`,
-        background: "black",
-        position: "relative",
-      }}>
-        <canvas
-        ref = {canvasRef}
-        width = {columns * blockWidth}
-        height = {rows * blockHeight}
-        style = {{display: "block"}}
-        />
       </div>
-
       {showGameOverDialog && (
         <div id="gameover-dialog" style={{
           position: 'fixed',
