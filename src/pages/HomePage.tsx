@@ -140,8 +140,8 @@ const HomePage: React.FC = () => {
             <div style='display: flex; flex-direction: column; align-items: center;'>
               <span style='font-size: 0.95em; margin-bottom: 4px;'>Exit</span>
               <svg width="36" height="36" viewBox="0 0 36 36" style="display:block;" xmlns="http://www.w3.org/2000/svg">
-                <rect x="4" y="4" width="28" height="28" rx="6" fill="#444" stroke="#fff" stroke-width="2"/>
-                <text x="18" y="25" text-anchor="middle" font-size="16" fill="#fff" font-family="Arial">ESC</text>
+                <rect x="1" y="4" width="34" height="28" rx="6" fill="#444" stroke="#fff" stroke-width="2"/>
+                <text x="18" y="25" text-anchor="middle" font-size="14" fill="#fff" font-family="Arial">ESC</text>
               </svg>
             </div>
           </div>
