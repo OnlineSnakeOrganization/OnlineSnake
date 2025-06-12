@@ -4,6 +4,7 @@ import { GameContext } from "../context/GameContext";
 import '../css/game.css';
 import '../css/stars.css';
 import SinglePlayerLogic from "../game/SinglePlayerLogic";
+import GameOverDialog from "../components/GameOverDialog";
 
 const rows = 15;
 const columns = 15;
@@ -66,13 +67,20 @@ const GamePage: React.FC = () => {
         () => setShowGameOverDialog(true)
       );
       setLogic(newLogic);
-      newLogic.start();
+      //newLogic.start();
       return () => {
         newLogic.exitGame();
       };
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [inGame]);
+
+  useEffect(() => {
+    if (logic) {
+      logic.start();
+      // drawBoard();  // <-- Entfernen!
+    }
+  }, [logic]);
 
   // GameOver Dialog Overlay
   useEffect(() => {
@@ -136,40 +144,18 @@ const GamePage: React.FC = () => {
         {renderBoard()}
       </div>
       {showGameOverDialog && (
-        <div id="gameover-dialog" style={{
-          position: 'fixed',
-          top: '50%',
-          left: '50%',
-          transform: 'translate(-50%, -50%)',
-          background: '#222',
-          color: 'white',
-          padding: '32px 24px',
-          borderRadius: '16px',
-          boxShadow: '0 0 20px #000a',
-          zIndex: 9999,
-          textAlign: 'center',
-        }}>
-          <h2>Game Over</h2>
-          <p></p>
-          <button
-            id="restart-btn"
-            style={{ margin: '10px', padding: '10px 20px', fontSize: '1.2em' }}
-            onClick={() => {
-              setShowGameOverDialog(false);
-              logic?.start();
-            }}
-          >Restart</button>
-          <button
-            id="menu-btn"
-            style={{ margin: '10px', padding: '10px 20px', fontSize: '1.2em' }}
-            onClick={() => {
-              setShowGameOverDialog(false);
-              if (logic) logic.exitGame();
-              endGame();
-              navigate("/");
-            }}
-          >Menu</button>
-        </div>
+        <GameOverDialog
+          onRestart={() => {
+            setShowGameOverDialog(false);
+            logic?.start();
+          }}
+          onMenu={() => {
+            setShowGameOverDialog(false);
+            if (logic) logic.exitGame();
+            endGame();
+            navigate("/");
+          }}
+        />
       )}
     </>
   );
