@@ -39,13 +39,20 @@ const GamePage: React.FC = () => {
       );
 
       setLogic(newLogic);
-      newLogic.start();
+      //newLogic.start();
       return () => {
         newLogic.exitGame(); // Ensure the old logic instance is stopped
       };
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [inGame]); // Add inGame as dependency to reinitialize logic when game starts
+
+  useEffect(() => {
+    if (logic) {
+      logic.start();
+      drawBoard();
+    }
+  }, [logic]);
 
   // GameOver Dialog Overlay
   useEffect(() => {
