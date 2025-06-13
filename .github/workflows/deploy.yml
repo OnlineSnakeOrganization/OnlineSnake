@@ -1,31 +1,66 @@
 name: Deploy to GitHub Pages
 
+#Trigger the workflow when the TypeScript builder workflow completes
 on:
-  push:
-    branches:
-      - main
+  workflow_run:
+    workflows: ["TypeScript builder"]
+    types:
+      - completed
 
+# Define the permissions that the workflow needs to deploy to GitHub Pages
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Define the jobs that the workflow will run
 jobs:
-  build:
+  publish:
+    # Define the environment variables that the workflow will use
+    defaults:
+      run:
+        working-directory: ./
+    
+        # Define the environment that the workflow will run in
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    # Define the runs-on property to specify the type of virtual machine that the workflow will run on
     runs-on: ubuntu-latest
-
+    
+    # Define the steps that the workflow will run
     steps:
+
+      # Check out the repository
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
+      # Set up Node.js Version 22
       - name: Setup Node.js
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v4
         with:
-          node-version: '16'
+          node-version: '22'
 
-      - name: Install dependencies
-        run: npm install
+      # Install Packages (npm ci)
+      - name: Install Packages
+        run: npm ci --force
 
+      # Build the project
       - name: Build project
         run: npm run build
 
-      - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v3
+      # Configure GitHub Pages
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+      
+      # Upload the artifact (to dist)
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./dist
+          path: ./dist
+      
+      # Wrap Up: Deploy to GitHub Pages
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

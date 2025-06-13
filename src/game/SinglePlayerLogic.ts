@@ -33,15 +33,26 @@ class SinglePlayerLogic {
   
     private snakeInterval: NodeJS.Timeout | undefined;
     private obstacleInterval: NodeJS.Timeout | undefined;
+
     private gameOverAudio: HTMLAudioElement | undefined;
     private backgroundMusic: HTMLAudioElement | undefined;
 
-    constructor(rows: number, columns: number, wallsAreDeadly: boolean, setBlockColor: (column: number, rows: number, newColor: string) => void,
-        clearBoard: () => void, displaySnakeLength: (length: number) => void, displayTime: (time: string) => void) {
+    private onGameOver?: () => void;
+
+    constructor(
+        rows: number,
+        columns: number,
+        wallsAreDeadly: boolean,
+        setBlockColor: (row: number, column: number, newColor: string) => void, // <-- Reihenfolge geändert!
+        clearBoard: () => void,
+        displaySnakeLength: (length: number) => void,
+        displayTime: (time: string) => void,
+        onGameOver?: () => void
+    ) {
         this.rows = rows;
         this.columns = columns;
         this.wallsAreDeadly = wallsAreDeadly;
-        this.setBlockColor = setBlockColor;
+        this.setBlockColor = setBlockColor; // Reihenfolge passt jetzt!
         this.clearBoard = clearBoard;
         this.displaySnakeLength = displaySnakeLength;
         this.snakeColorGradient = new SnakeColorGradient("00ff00", "006600");
@@ -63,17 +74,21 @@ class SinglePlayerLogic {
         this.staticObstacles = [];
         this.movingObstacles = []
         this.controller = new StraightController(document, this);   //Compiler is angry if this is gone
-        this.gameOverAudio = new Audio("/src/assets/gameover.mp3");
+
+        // Audio-Dateien korrekt laden (Vite/React: Asset-Import)
+        this.gameOverAudio = new Audio(new URL("../assets/gameover.mp3", import.meta.url).href);
         this.gameOverAudio.volume = 0.7;
-        this.backgroundMusic = new Audio("/src/assets/background.mp3");
+        this.backgroundMusic = new Audio(new URL("../assets/background.mp3", import.meta.url).href);
         this.backgroundMusic.loop = true;
         this.backgroundMusic.volume = 0.3;
+        this.onGameOver = onGameOver;
      }
 
     public start(): void {
         // Vor jedem Start: Intervals beenden, um doppelte zu verhindern
         clearInterval(this.snakeInterval);
         clearInterval(this.obstacleInterval);
+
 
         this.snakeDirection = "UP";
         this.snakeSegments = [];
@@ -100,13 +115,16 @@ class SinglePlayerLogic {
         this.snakeInterval = setInterval(this.snakeLoop, 125);
         this.obstacleInterval = setInterval(this.obstacleLoop, 1000);
         this.drawBoard();
-        this.playBackgroundMusic();
-    }
 
+        this.playBackgroundMusic();
+
+    }
     public killSnake = (): void => {
         clearInterval(this.snakeInterval);
         this.stopWatch.stop();
+
         this.stopBackgroundMusic();
+
     }
 
     public exitGame = (): void =>{
@@ -123,12 +141,15 @@ class SinglePlayerLogic {
     private snakeLoop = (): void => {    //Arrow Function because else "this" would be different
         // Create another Snakesegment
         const head = { ...this.snakeSegments[0] };
+
         const oldHead = { ...this.snakeSegments[0] };
+
         this.controller.moveHead(head);
         this.snakeSegments.unshift(head);   //Add it to the front of the Snake
 
         if (this.isGameOver()) {
             const playerName = localStorage.getItem('playerName') || 'Unknown';
+
             // Score = snakeSegments.length - 1 (Anzahl gegessener Nahrung)
             const score = Math.max(this.snakeSegments.length - 1, 0);
             this.playGameOverSound();
@@ -136,7 +157,8 @@ class SinglePlayerLogic {
             this.uploadScore(playerName, score);
             this.killSnake();
             this.snakeSegments[0] = oldHead;
-            this.showGameOverDialog();
+            if (this.onGameOver) this.onGameOver();
+
         } else {
             this.pullSnakeColorsToTheHead();    //To keep the colors after each movement.
             
@@ -155,7 +177,7 @@ class SinglePlayerLogic {
                 this.resetSnakeColors();
             } else {
                 const lastSegment: SnakeSegment = this.snakeSegments[this.snakeSegments.length - 1];
-                this.setBlockColor(lastSegment.x, lastSegment.y, "black")
+                this.setBlockColor(lastSegment.y, lastSegment.x, "black") // <-- Reihenfolge geändert!
                 this.snakeSegments.pop(); // Remove the tail if no food is eaten
             }
             this.drawBoard();
@@ -281,17 +303,16 @@ class SinglePlayerLogic {
     private drawBoard = (): void =>{
         for(let i = 0; i < this.snakeSegments.length; i++){
             const segment = this.snakeSegments[i];
-            this.setBlockColor(segment.x, segment.y, segment.color); 
-            //Only recalculate colors when food was eaten
+            this.setBlockColor(segment.y, segment.x, segment.color); // <-- Reihenfolge geändert!
         }
         for (const staticObstacle of this.staticObstacles) {
-            this.setBlockColor(staticObstacle.x, staticObstacle.y, "blue");
+            this.setBlockColor(staticObstacle.y, staticObstacle.x, "blue"); // <-- Reihenfolge geändert!
         }
         for (const food of this.food) {
-            this.setBlockColor(food.x, food.y, "pink");
+            this.setBlockColor(food.y, food.x, "pink"); // <-- Reihenfolge geändert!
         }
         for (const movingObstacle of this.movingObstacles){
-            this.setBlockColor(movingObstacle.position.x, movingObstacle.position.y, "#30D5C8");
+            this.setBlockColor(movingObstacle.position.y, movingObstacle.position.x, "#30D5C8"); // <-- Reihenfolge geändert!
         }
     }
     
@@ -340,51 +361,6 @@ class SinglePlayerLogic {
         });
     }
 
-    private showGameOverDialog() {
-        if (document.getElementById('gameover-dialog')) return;
-        const dialog = document.createElement('div');
-        dialog.id = 'gameover-dialog';
-        dialog.style.position = 'fixed';
-        dialog.style.top = '50%';
-        dialog.style.left = '50%';
-        dialog.style.transform = 'translate(-50%, -50%)';
-        dialog.style.background = '#222';
-        dialog.style.color = 'white';
-        dialog.style.padding = '32px 24px';
-        dialog.style.borderRadius = '16px';
-        dialog.style.boxShadow = '0 0 20px #000a';
-        dialog.style.zIndex = '9999';
-        dialog.style.textAlign = 'center';
-        dialog.innerHTML = `
-            <h2>Game Over</h2>
-            <p>Play again or go back to menu?</p>
-            <button id="restart-btn" style="margin: 10px; padding: 10px 20px; font-size: 1.2em;">Restart</button>
-            <button id="menu-btn" style="margin: 10px; padding: 10px 20px; font-size: 1.2em;">Menu</button>
-        `;
-        document.body.appendChild(dialog);
-
-        // Keydown-Listener für R hinzufügen
-        const keyListener = (e: KeyboardEvent) => {
-            if ((e.key === 'r' || e.key === 'R')) {
-                e.preventDefault();
-                dialog.remove();
-                window.removeEventListener('keydown', keyListener);
-                this.start();
-            }
-        };
-        window.addEventListener('keydown', keyListener);
-
-        document.getElementById('restart-btn')?.addEventListener('click', () => {
-            dialog.remove();
-            window.removeEventListener('keydown', keyListener);
-            this.start();
-        });
-        document.getElementById('menu-btn')?.addEventListener('click', () => {
-            dialog.remove();
-            window.removeEventListener('keydown', keyListener);
-            window.location.href = '/';
-        });
-    }
 
     private playGameOverSound() {
         if (this.gameOverAudio) {
@@ -406,6 +382,7 @@ class SinglePlayerLogic {
             this.backgroundMusic.currentTime = 0;
         }
     }
+
 
 }
 export default SinglePlayerLogic;

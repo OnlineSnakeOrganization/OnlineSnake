@@ -3,6 +3,7 @@ import { useGame } from "../context/GameContext";
 import { useNavigate } from "react-router-dom";
 import '../css/home.css';
 import '../css/stars.css';
+import HelpDialog from "../components/HelpDialog";
 
 interface Highscore {
   playerName: string;
@@ -15,6 +16,7 @@ const HomePage: React.FC = () => {
   const navigate = useNavigate();
 
   const [globalHighscores, setGlobalHighscores] = useState<Highscore[]>([]);
+  const [showHelp, setShowHelp] = useState(false);
 
   useEffect(() => {
     displayLeaderboard();
@@ -75,41 +77,19 @@ const HomePage: React.FC = () => {
         {globalHighscores.map((entry, idx) => (
           <div key={idx}>{entry.playerName}: {entry.score}</div>
         ))}
+
       </div>
-      <div className="help-icon" style={{position: 'fixed', bottom: 24, right: 24, zIndex: 10000, cursor: 'pointer'}} onClick={() => {
-        if (document.getElementById('help-dialog')) return;
-        const dialog = document.createElement('div');
-        dialog.id = 'help-dialog';
-        dialog.style.position = 'fixed';
-        dialog.style.bottom = '80px';
-        dialog.style.right = '40px';
-        dialog.style.background = '#222';
-        dialog.style.color = 'white';
-        dialog.style.padding = '28px 20px';
-        dialog.style.borderRadius = '14px';
-        dialog.style.boxShadow = '0 0 20px #000a';
-        dialog.style.zIndex = '10001';
-        dialog.style.textAlign = 'center';
-        dialog.innerHTML = `
-          <h3>Controls</h3>
-          <ul style='padding: 0; margin: 0; list-style-position: inside; display: inline-block; text-align: left;'>
-            <li style='margin-bottom: 6px;'>Arrows or W/A/S/D: Movement</li>
-            <li style='margin-bottom: 6px;'>R: Restart</li>
-            <li>ESC: Exit game</li>
-          </ul>
-          <br />
-          <button id="close-help-btn" style="margin-top: 14px; padding: 6px 18px; font-size: 1em;">Schließen</button>
-        `;
-        document.body.appendChild(dialog);
-        document.getElementById('close-help-btn')?.addEventListener('click', () => {
-          dialog.remove();
-        });
-      }}>
+      <div
+        className="help-icon"
+        style={{ position: 'fixed', bottom: 24, right: 24, zIndex: 10000, cursor: 'pointer' }}
+        onClick={() => setShowHelp(!showHelp)}
+      >
         <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
           <circle cx="24" cy="24" r="22" fill="#222" stroke="#fff" strokeWidth="3"/>
           <text x="24" y="32" textAnchor="middle" fontSize="28" fill="#fff" fontFamily="Arial, sans-serif">?</text>
         </svg>
       </div>
+      {showHelp && <HelpDialog onClose={() => setShowHelp(false)} />}
     </>
   );
 };
