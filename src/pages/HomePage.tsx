@@ -4,6 +4,8 @@ import { useNavigate } from "react-router-dom";
 import '../css/home.css';
 import '../css/stars.css';
 import HelpDialog from "../components/HelpDialog";
+import LobbyDialog from "../components/LobbyDialog";
+import MuteButton from "../components/MuteButton";
 
 interface Highscore {
   playerName: string;
@@ -17,6 +19,10 @@ const HomePage: React.FC = () => {
 
   const [globalHighscores, setGlobalHighscores] = useState<Highscore[]>([]);
   const [showHelp, setShowHelp] = useState(false);
+  const [showLobby, setShowLobby] = useState(false);
+  const [muted, setMuted] = useState<boolean>(() => {
+    return localStorage.getItem("musicMuted") === "true";
+  });
 
   useEffect(() => {
     displayLeaderboard();
@@ -45,6 +51,13 @@ const HomePage: React.FC = () => {
     }
   };
 
+  const handleToggleMute = () => {
+    setMuted((prev) => {
+      localStorage.setItem("musicMuted", String(!prev));
+      return !prev;
+    });
+  };
+
   return (
     <>
       <div id="stars"></div>
@@ -69,7 +82,7 @@ const HomePage: React.FC = () => {
             alert("Please enter a valid name.");
           }
         }}>Singleplayer</button>
-        <button onClick={() => { }}>Multiplayer</button>
+        <button onClick={() => setShowLobby(true)}>Multiplayer</button>
       </div>
       <div className="leaderboard right">
         <h3>Global Highscores</h3>
@@ -89,7 +102,18 @@ const HomePage: React.FC = () => {
           <text x="24" y="32" textAnchor="middle" fontSize="28" fill="#fff" fontFamily="Arial, sans-serif">?</text>
         </svg>
       </div>
+      <MuteButton muted={muted} onToggle={handleToggleMute} />
       {showHelp && <HelpDialog onClose={() => setShowHelp(false)} />}
+      {showLobby && (
+        <LobbyDialog
+          onClose={() => setShowLobby(false)}
+          onCreateLobby={lobbyName => {
+            // Hier kannst du die Lobby anlegen (API call etc.)
+            alert(`Lobby "${lobbyName}" wurde erstellt!`);
+            setShowLobby(false);
+          }}
+        />
+      )}
     </>
   );
 };

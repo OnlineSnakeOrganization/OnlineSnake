@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { GameContext } from "../context/GameContext";
 import '../css/game.css';
@@ -16,6 +16,7 @@ type Block = { key: string, color: string };
 const GamePage: React.FC = () => {
   const navigate = useNavigate();
   const { inGame, endGame } = useContext(GameContext);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   // 2D-Array für die Blockfarben
   const [blocks, setBlocks] = useState<Block[][]>(
@@ -31,6 +32,7 @@ const GamePage: React.FC = () => {
   const [playTime, setPlayTime] = useState("");
   const [logic, setLogic] = useState<SinglePlayerLogic | null>(null);
   const [showGameOverDialog, setShowGameOverDialog] = useState(false);
+  const [muted, setMuted] = useState(() => localStorage.getItem("musicMuted") === "true");
 
   // Hilfsfunktionen für das Block-Grid
   const setBlockColor = (row: number, column: number, newColor: string) => {
@@ -109,6 +111,37 @@ const GamePage: React.FC = () => {
     return () => window.removeEventListener('keydown', escListener);
   }, [logic, endGame, navigate]);
 
+  // Musiksteuerung
+  useEffect(() => {
+    const muted = localStorage.getItem("musicMuted") === "true";
+    if (muted) {
+      // Musik pausieren
+      audioRef.current?.pause();
+    } else {
+      // Musik abspielen
+      audioRef.current?.play();
+    }
+  }, []);
+
+  // Optional: Auf Änderungen am Mute-Status reagieren
+  useEffect(() => {
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === "musicMuted") {
+        setMuted(e.newValue === "true");
+      }
+    };
+    window.addEventListener("storage", onStorage);
+    return () => window.removeEventListener("storage", onStorage);
+  }, []);
+
+  useEffect(() => {
+    if (muted) {
+      audioRef.current?.pause();
+    } else {
+      audioRef.current?.play().catch(() => {});
+    }
+  }, [muted]);
+
   // Board-Rendering
   const renderBoard = () => {
     return blocks.flat().map(({ key, color }) => (
@@ -157,6 +190,7 @@ const GamePage: React.FC = () => {
           }}
         />
       )}
+      <audio ref={audioRef} src="/src/assets/background.mp3" loop />
     </>
   );
 };
