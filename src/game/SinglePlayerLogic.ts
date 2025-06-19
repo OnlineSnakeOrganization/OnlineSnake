@@ -82,6 +82,8 @@ class SinglePlayerLogic {
         this.backgroundMusic.loop = true;
         this.backgroundMusic.volume = 0.3;
         this.onGameOver = onGameOver;
+
+        window.addEventListener("storage", this.handleMuteChange);
      }
 
     public start(): void {
@@ -131,6 +133,7 @@ class SinglePlayerLogic {
         this.killSnake();
         clearInterval(this.obstacleInterval);
         this.controller.disable();
+        window.removeEventListener("storage", this.handleMuteChange);
     }
 
     public clearIntervals = (): void =>{
@@ -230,21 +233,25 @@ class SinglePlayerLogic {
         }
     }
 
+    private isInSpawnRadius(x: number, y: number, radius: number = 5): boolean {
+        // Startposition der Schlange ist (0,0)
+        return Math.abs(x - 0) <= radius && Math.abs(y - 0) <= radius;
+    }
+
     private generateObstacles = (): void =>{
         let availableBlocksForObstacles: Obstacle[] = [];
-        for (let row = 0; row < this.rows; row++) {     // Fill it up
+        for (let row = 0; row < this.rows; row++) {
             for (let column = 0; column < this.columns; column++) {
+                // Felder im Spawnradius überspringen
+                if (this.isInSpawnRadius(column, row, 5)) continue;
                 const availableBlock: Obstacle = { x: column, y: row };
                 availableBlocksForObstacles.push(availableBlock);
             }
         }
-
         while (this.staticObstacles.length < this.amountOfStaticObstacles
-     && availableBlocksForObstacles.length > 0) {
+            && availableBlocksForObstacles.length > 0) {
             const randomIdx: number = Math.floor(Math.random() * availableBlocksForObstacles.length);
             this.staticObstacles.push({ ...availableBlocksForObstacles[randomIdx] });
-
-            // Make this used ob now unavailable
             availableBlocksForObstacles = availableBlocksForObstacles.filter(ob => !(ob.x === availableBlocksForObstacles[randomIdx].x && ob.y === availableBlocksForObstacles[randomIdx].y));
         }
     }
@@ -256,21 +263,19 @@ class SinglePlayerLogic {
         };
 
         let availableBlocksForMovingObstacles: MovingObstacle[] = [];
-        for (let row = 0; row < this.rows; row++) {     // Fill it up
+        for (let row = 0; row < this.rows; row++) {
             for (let column = 0; column < this.columns; column++) {
+                // Felder im Spawnradius überspringen
+                if (this.isInSpawnRadius(column, row, 5)) continue;
                 const availableBlock: MovingObstacle = new MovingObstacle(this, {x: column, y: row}, randomDirection());
                 availableBlocksForMovingObstacles.push(availableBlock);
             }
         }
-
-        // Food cannot spawn on staticObstacles => Remove the blocks taken by staticObstacles
         availableBlocksForMovingObstacles = availableBlocksForMovingObstacles.filter(ob => !this.staticObstacles.some(staticObstacle => ob.position.x === staticObstacle.x && ob.position.y === staticObstacle.y));
-
         while (this.movingObstacles.length < this.amountOfMovingObstacles
-     &&     availableBlocksForMovingObstacles.length > 0) {
+            && availableBlocksForMovingObstacles.length > 0) {
             const randomIdx: number = Math.floor(Math.random() * availableBlocksForMovingObstacles.length);
             this.movingObstacles.push(availableBlocksForMovingObstacles[randomIdx]);
-            // Make this used ob now unavailable
             availableBlocksForMovingObstacles = availableBlocksForMovingObstacles.filter(ob => !(ob.position.x === availableBlocksForMovingObstacles[randomIdx].position.x && ob.position.y === availableBlocksForMovingObstacles[randomIdx].position.y));
         }
     }
@@ -371,8 +376,13 @@ class SinglePlayerLogic {
 
     private playBackgroundMusic() {
         if (this.backgroundMusic) {
+            const muted = localStorage.getItem("musicMuted") === "true";
             this.backgroundMusic.currentTime = 0;
-            this.backgroundMusic.play();
+            if (!muted) {
+                this.backgroundMusic.play();
+            } else {
+                this.backgroundMusic.pause();
+            }
         }
     }
 
@@ -383,6 +393,16 @@ class SinglePlayerLogic {
         }
     }
 
-
+    private handleMuteChange = (e: StorageEvent) => {
+        if (e.key === "musicMuted" && this.backgroundMusic) {
+            if (e.newValue === "true") {
+                this.backgroundMusic.pause();
+            } else {
+                this.backgroundMusic.play();
+            }
+        }
+    }
 }
+
+
 export default SinglePlayerLogic;

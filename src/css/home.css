@@ -106,3 +106,12 @@ button:hover {
         transform: translateY(-100%);
     }
 }*/
+
+.mute-btn:focus {
+  outline: none;
+  box-shadow: none;
+}
+.mute-btn:active {
+  outline: none;
+  box-shadow: none;
+}
