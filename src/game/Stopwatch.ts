@@ -33,6 +33,10 @@ class Stopwatch {
     reset(){
         this.displayTime(this.formatTime(0, 0))
     }
+
+    getTime(): number {
+        return this.startTime ? Date.now() - this.startTime : 0;
+    }
   
     private formatTime(minutes: number, seconds: number): string {
         return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;

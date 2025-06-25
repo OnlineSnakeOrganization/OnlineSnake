@@ -345,14 +345,25 @@ class SinglePlayerLogic {
 
     // WIP: Sends the score to the backend and updates the global leaderboard
     uploadScore(name: string, score: number) {
-        fetch('http://localhost:3000/highscores', { // Must be replaced with the actual URL of the backend
+        // Calculate game duration in seconds
+        const gameDuration = Math.floor(this.stopWatch.getTime() / 1000);
+        fetch('http://localhost:3000/highscores', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ playerName: name, score })
+            body: JSON.stringify({ 
+                playerName: name, 
+                score,
+                gameDuration 
+            })
         })
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
         .then(data => {
             console.log('Score uploaded successfully:', data);
         })
