@@ -5,6 +5,7 @@ import '../css/game.css';
 import '../css/stars.css';
 import SinglePlayerLogic from "../game/SinglePlayerLogic";
 import GameOverDialog from "../components/GameOverDialog";
+import appleImg from "../assets/Apple_Online_Snake.png"; // Import the apple image
 
 const rows = 15;
 const columns = 15;
@@ -25,6 +26,14 @@ const GamePage: React.FC = () => {
   const [logic, setLogic] = useState<SinglePlayerLogic | null>(null);
   const [showGameOverDialog, setShowGameOverDialog] = useState(false);
   const [muted, setMuted] = useState(() => localStorage.getItem("musicMuted") === "true");
+
+  // Food-Bild vorbereiten (außerhalb von drawBoard, am Anfang der Komponente)
+const foodImageRef = useRef<HTMLImageElement | null>(null);
+useEffect(() => {
+  const img = new window.Image();
+  img.src = appleImg;
+  foodImageRef.current = img;
+}, []);
 
   // HIER DIE FUNKTION EINFÜGEN:
   function drawBoard() {
@@ -48,14 +57,25 @@ const GamePage: React.FC = () => {
 
     // Food zeichnen
     logic.food.forEach(food => {
-      ctx.fillStyle = "red";
-      ctx.fillRect(
-        food.x * blockWidth,
-        food.y * blockHeight,
-        blockWidth,
-        blockHeight
-      );
-    });
+  if (foodImageRef.current && foodImageRef.current.complete) {
+    ctx.drawImage(
+      foodImageRef.current,
+      food.x * blockWidth,
+      food.y * blockHeight,
+      blockWidth,
+      blockHeight
+    );
+  } else {
+    // Fallback, falls das Bild noch nicht geladen ist
+    ctx.fillStyle = "red";
+    ctx.fillRect(
+      food.x * blockWidth,
+      food.y * blockHeight,
+      blockWidth,
+      blockHeight
+    );
+  }
+});
 
     // Statische Hindernisse zeichnen
     logic.staticObstacles?.forEach(ob => {
