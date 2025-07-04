@@ -12,8 +12,6 @@ const columns = 15;
 const blockWidth = 30;
 const blockHeight = 30;
 
-// type Block = { key: string, color: string }; // The builder flagged this. Commented, now Canvas works.
-
 const GamePage: React.FC = () => {
   const navigate = useNavigate();
   const { inGame, endGame } = useContext(GameContext);
@@ -28,12 +26,12 @@ const GamePage: React.FC = () => {
   const [muted, setMuted] = useState(() => localStorage.getItem("musicMuted") === "true");
 
   // Food-Bild vorbereiten (außerhalb von drawBoard, am Anfang der Komponente)
-const foodImageRef = useRef<HTMLImageElement | null>(null);
-useEffect(() => {
-  const img = new window.Image();
-  img.src = appleImg;
-  foodImageRef.current = img;
-}, []);
+  const foodImageRef = useRef<HTMLImageElement | null>(null);
+  useEffect(() => {
+    const img = new window.Image();
+    img.src = appleImg;
+    foodImageRef.current = img;
+  }, []);
 
   // HIER DIE FUNKTION EINFÜGEN:
   function drawBoard() {
@@ -57,25 +55,25 @@ useEffect(() => {
 
     // Food zeichnen
     logic.food.forEach(food => {
-  if (foodImageRef.current && foodImageRef.current.complete) {
-    ctx.drawImage(
-      foodImageRef.current,
-      food.x * blockWidth,
-      food.y * blockHeight,
-      blockWidth,
-      blockHeight
-    );
-  } else {
-    // Fallback, falls das Bild noch nicht geladen ist
-    ctx.fillStyle = "red";
-    ctx.fillRect(
-      food.x * blockWidth,
-      food.y * blockHeight,
-      blockWidth,
-      blockHeight
-    );
-  }
-});
+      if (foodImageRef.current && foodImageRef.current.complete) {
+        ctx.drawImage(
+          foodImageRef.current,
+          food.x * blockWidth,
+          food.y * blockHeight,
+          blockWidth,
+          blockHeight
+        );
+      } else {
+        // Fallback, falls das Bild noch nicht geladen ist
+        ctx.fillStyle = "red";
+        ctx.fillRect(
+          food.x * blockWidth,
+          food.y * blockHeight,
+          blockWidth,
+          blockHeight
+        );
+      }
+    });
 
     // Statische Hindernisse zeichnen
     logic.staticObstacles?.forEach(ob => {
@@ -108,8 +106,8 @@ useEffect(() => {
         rows,
         columns,
         false,
-        () => {}, // Dummy setBlockColor
-        () => {}, // Dummy clearBoard
+        () => { }, // Dummy setBlockColor
+        () => { }, // Dummy clearBoard
         setCurrentSnakeLength,
         setPlayTime,
         () => setShowGameOverDialog(true)
@@ -184,27 +182,27 @@ useEffect(() => {
     if (muted) {
       audioRef.current?.pause();
     } else {
-      audioRef.current?.play().catch(() => {});
+      audioRef.current?.play().catch(() => { });
     }
   }, [muted]);
 
   useEffect(() => {
-  let animationFrameId: number;
+    let animationFrameId: number;
 
-  function renderLoop() {
-    drawBoard();
-    animationFrameId = requestAnimationFrame(renderLoop);
-  }
+    function renderLoop() {
+      drawBoard();
+      animationFrameId = requestAnimationFrame(renderLoop);
+    }
 
-  if (!showGameOverDialog) {
-    animationFrameId = requestAnimationFrame(renderLoop);
-  }
+    if (!showGameOverDialog) {
+      animationFrameId = requestAnimationFrame(renderLoop);
+    }
 
-  return () => {
-    cancelAnimationFrame(animationFrameId);
-  };
-  
-}, [logic, showGameOverDialog]);
+    return () => {
+      cancelAnimationFrame(animationFrameId);
+    };
+
+  }, [logic, showGameOverDialog]);
 
   return (
     <>
@@ -217,18 +215,18 @@ useEffect(() => {
         <p>Time: {playTime}</p>
       </div>
       <div className="gameMap" style={{
-  width: `${columns * blockWidth}px`,
-  height: `${rows * blockHeight}px`,
-  background: "black",
-  position: "relative"
-}}>
-  <canvas
-    ref={canvasRef}
-    width={columns * blockWidth}
-    height={rows * blockHeight}
-    style={{ display: "block" }}
-  />
-</div>
+        width: `${columns * blockWidth}px`,
+        height: `${rows * blockHeight}px`,
+        background: "black",
+        position: "relative"
+      }}>
+        <canvas
+          ref={canvasRef}
+          width={columns * blockWidth}
+          height={rows * blockHeight}
+          style={{ display: "block" }}
+        />
+      </div>
       {showGameOverDialog && (
         <GameOverDialog
           onRestart={() => {

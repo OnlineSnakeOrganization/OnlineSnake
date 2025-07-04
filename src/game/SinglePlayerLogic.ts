@@ -2,11 +2,14 @@ import Stopwatch from "../game/Stopwatch";
 import DiagonalController from "./controllers/DiagonalController";
 import StraightController from "./controllers/StraightController";
 import MovingObstacle from "./MovingObstacle";
-import SnakeColorGradient from "./SnakeColorCalculator";
+
+import EntityGenerator from "./EntityGenerator";
+import AudioPlayer from "./AudioPlayer";
+import LocalHighscoresManager from "./LocalHighscoresManager";
+import Painter from "./Painter";
 export type SnakeSegment = {x: number, y: number, color: string};
-type Food = {x: number, y: number};
-type Obstacle = {x: number, y: number};
-type LeaderboardEntry = { name: string, score: number };
+export type Food = {x: number, y: number};
+export type Obstacle = {x: number, y: number};
 
 class SinglePlayerLogic {
     public snakeSegments: SnakeSegment[];
@@ -21,23 +24,24 @@ class SinglePlayerLogic {
     public columns: number;
     public wallsAreDeadly: boolean;
 
-    public setBlockColor: (row: number, column: number, newColor: string) => void;
-    private clearBoard: () => void;
-    private displaySnakeLength: (length: number) => void;
-    private stopWatch: Stopwatch
-    private snakeColorGradient: SnakeColorGradient;
+    public setBlockColor: (row: number, column: number, newColor: string) => void;  //Method from Gamepage
+    private clearBoard: () => void;                                                 //Method from Gamepage
+    private displaySnakeLength: (length: number) => void;                           //Method from Gamepage
+    private painter: Painter;
+    private stopWatch: Stopwatch;
+    private entityGenerator: EntityGenerator;
+    private audioPlayer: AudioPlayer;
+    private highscores: LocalHighscoresManager;
+    
     
     public snakeDirection: string;  //The direction the snake is facing and sneaking towards if no key is held.
     private diagonalMovementAllowed: boolean;
-    private controller: StraightController | DiagonalController;
+    private controller: StraightController | DiagonalController; //Which controller is used depends on 'diagonalMovementAllowed'
   
     private snakeInterval: NodeJS.Timeout | undefined;
     private obstacleInterval: NodeJS.Timeout | undefined;
 
-    private gameOverAudio: HTMLAudioElement | undefined;
-    private backgroundMusic: HTMLAudioElement | undefined;
-
-    private onGameOver?: () => void;
+    private onGameOver?: () => void;    //This method triggers the code on the GamePage
 
     constructor(
         rows: number,
@@ -54,19 +58,19 @@ class SinglePlayerLogic {
         this.wallsAreDeadly = wallsAreDeadly;
         this.setBlockColor = setBlockColor; // Reihenfolge passt jetzt!
         this.clearBoard = clearBoard;
+        this.onGameOver = onGameOver;
         this.displaySnakeLength = displaySnakeLength;
-        this.snakeColorGradient = new SnakeColorGradient("00ff00", "006600");
-                    //Gold-Bone - "DCAD00", "D2CEBF"
-                    //Blau Türkis - "0000ff", "00ffff"
-                    //Türkis Orange - "00ffff", "FF9100"
-                    //Grün DunkelGrün - "00FF00", "006100"
-                    //Rot Orange - "FF1900", "FF9100"
+
         this.maxAmountOfFood = 1;
         this.amountOfStaticObstacles = 7;
         this.amountOfMovingObstacles = 3;
+        this.painter = new Painter(this);
         this.stopWatch = new Stopwatch(displayTime);
+        this.entityGenerator = new EntityGenerator(this);
+        this.audioPlayer = new AudioPlayer();
+        this.highscores = new LocalHighscoresManager();
         
-        //We already refresh theese variables in the start method but the compiler isnt happy.
+        //We already refresh theese variables in the start method but we still have to give them some value in the constructor.
         this.snakeDirection = "UP";
         this.diagonalMovementAllowed = true;
         this.snakeSegments = [];
@@ -74,22 +78,27 @@ class SinglePlayerLogic {
         this.staticObstacles = [];
         this.movingObstacles = []
         this.controller = new StraightController(document, this);   //Compiler is angry if this is gone
+    }
 
-        // Audio-Dateien korrekt laden (Vite/React: Asset-Import)
-        this.gameOverAudio = new Audio(new URL("../assets/gameover.mp3", import.meta.url).href);
-        this.gameOverAudio.volume = 0.7;
-        this.backgroundMusic = new Audio(new URL("../assets/background.mp3", import.meta.url).href);
-        this.backgroundMusic.loop = true;
-        this.backgroundMusic.volume = 0.3;
-        this.onGameOver = onGameOver;
-     }
+    public getAmountOfMovingObstacles(): number{
+        return this.amountOfMovingObstacles;
+    }
+
+    public getMaxAmountOfFood(): number{
+        return this.maxAmountOfFood;
+    }
+
+    public getAmountOfStaticObstacles(): number{
+        return this.amountOfStaticObstacles;
+    }
 
     public start(): void {
-        // Vor jedem Start: Intervals beenden, um doppelte zu verhindern
+        // If running intervals exist, clear them.
         clearInterval(this.snakeInterval);
         clearInterval(this.obstacleInterval);
+        this.audioPlayer.stopAllSounds();
 
-
+        // Resetting all Game-Variables
         this.snakeDirection = "UP";
         this.snakeSegments = [];
         this.food = [];
@@ -99,32 +108,32 @@ class SinglePlayerLogic {
         this.stopWatch.reset();
         this.stopWatch.start();
     
-        this.snakeSegments.push({x: 0, y: 0, color: ""});   //Places the first Snake segment on the bottom left corner.
+        // Places the first Snake segment on the bottom left corner.
+        // Edit this someday so that the snake cannot die instantly by spawning in front of an obstacle.
+        this.snakeSegments.push({x: 0, y: 0, color: ""});
 
-        this.resetSnakeColors();
+        this.painter.ApplyColorsToSnakeSegments();
         this.displaySnakeLength(this.snakeSegments.length);
-        this.generateObstacles();
-        this.generateMovingObstacles();
-        this.generateFood();
+        this.entityGenerator.generateObstacles();
+        this.entityGenerator.generateMovingObstacles();
+        this.entityGenerator.generateFood();
         if(this.diagonalMovementAllowed){
             this.controller = new DiagonalController(document, this);
         }else{
             this.controller = new StraightController(document, this);
         }
         this.controller.enable();
+        this.audioPlayer.playBackgroundMusic();
         this.snakeInterval = setInterval(this.snakeLoop, 125);
         this.obstacleInterval = setInterval(this.obstacleLoop, 1000);
-        this.drawBoard();
-
-        this.playBackgroundMusic();
-
     }
+
+    //Stops the snake, background ambience and 
     public killSnake = (): void => {
         clearInterval(this.snakeInterval);
         this.stopWatch.stop();
-
-        this.stopBackgroundMusic();
-
+        this.audioPlayer.stopAllSounds();
+        this.audioPlayer.playGameOverSound();
     }
 
     public exitGame = (): void =>{
@@ -138,7 +147,7 @@ class SinglePlayerLogic {
         clearInterval(this.obstacleInterval);
     }
       
-    private snakeLoop = (): void => {    //Arrow Function because else "this" would be different
+    private snakeLoop = (): void => {    //Arrow Function because else "this" would behave differently
         // Create another Snakesegment
         const head = { ...this.snakeSegments[0] };
 
@@ -152,15 +161,13 @@ class SinglePlayerLogic {
 
             // Score = snakeSegments.length - 1 (Anzahl gegessener Nahrung)
             const score = Math.max(this.snakeSegments.length - 1, 0);
-            this.playGameOverSound();
-            this.saveScore(playerName, score);
-            this.uploadScore(playerName, score);
+            this.highscores.saveScore(playerName, score);
+            this.highscores.uploadScore(playerName, score, this.stopWatch.getTime());
             this.killSnake();
             this.snakeSegments[0] = oldHead;
             if (this.onGameOver) this.onGameOver();
-
         } else {
-            this.pullSnakeColorsToTheHead();    //To keep the colors after each movement.
+            this.painter.pullSnakeColorsToTheHead();    //To keep the colors after each movement.
             
             //Check if the snake eats food
             let justAteFood: boolean = false;
@@ -172,109 +179,27 @@ class SinglePlayerLogic {
                 }
             }
             if (justAteFood === true) {
-                this.generateFood();
+                this.entityGenerator.generateFood();
+                //this.generateFood();
                 this.displaySnakeLength(this.snakeSegments.length);
-                this.resetSnakeColors();
+                this.painter.ApplyColorsToSnakeSegments();
             } else {
                 const lastSegment: SnakeSegment = this.snakeSegments[this.snakeSegments.length - 1];
                 this.setBlockColor(lastSegment.y, lastSegment.x, "black") // <-- Reihenfolge geändert!
                 this.snakeSegments.pop(); // Remove the tail if no food is eaten
             }
-            this.drawBoard();
+            this.painter.drawBoard();
         }
     }
 
+    //This function moves all movable obstacles
     private obstacleLoop = (): void => {
         for(const obstacle of this.movingObstacles){
             obstacle.moveObstacle();
         }
-        this.drawBoard();
+        this.painter.drawBoard();
     }
-  
-    private resetSnakeColors = ():void =>{
-        const snakeLength: number = this.snakeSegments.length;
-        for(let i = 0; i < this.snakeSegments.length; i++){
-            this.snakeSegments[i].color = this.snakeColorGradient.getColor(i, snakeLength);
-        }
-    }
-
-    private pullSnakeColorsToTheHead = ():void =>{
-        for(let i = 1; i < this.snakeSegments.length; i++){
-            this.snakeSegments[i-1].color = this.snakeSegments[i].color;
-        }
-    }
-  
-    private generateFood = (): void => {
-        let availableBlocksForNewFood: Food[] = [];     // An array of free blocks where food could spawn
-        for (let row = 0; row < this.rows; row++) {     // Fill it up
-            for (let column = 0; column < this.columns; column++) {
-                const availableBlock: Food = { x: column, y: row };
-                availableBlocksForNewFood.push(availableBlock);
-            }
-        }
-        // Then remove all the blocks which are already taken
-        // Food cannot spawn where there are snake segments => Remove the blocks taken by the snake
-        availableBlocksForNewFood = availableBlocksForNewFood.filter(ob => !this.snakeSegments.some(segment => ob.x === segment.x && ob.y === segment.y));
-        // Food cannot spawn on other food => Remove the blocks taken by other food
-        availableBlocksForNewFood = availableBlocksForNewFood.filter(ob => !this.food.some(food => ob.x === food.x && ob.y === food.y));
-        // Food cannot spawn on staticObstacles => Remove the blocks taken by staticObstacles
-        availableBlocksForNewFood = availableBlocksForNewFood.filter(ob => !this.staticObstacles.some(staticObstacle => ob.x === staticObstacle.x && ob.y === staticObstacle.y));
-
-        // Always make sure to spawn the maximum Amount of food allowed and possible
-        while (this.food.length < this.maxAmountOfFood && availableBlocksForNewFood.length > 0) {
-            const randomIdx: number = Math.floor(Math.random() * availableBlocksForNewFood.length);
-            this.food.push({ ...availableBlocksForNewFood[randomIdx] });
-
-            // Make this used ob now unavailable
-            availableBlocksForNewFood = availableBlocksForNewFood.filter(ob => !(ob.x === availableBlocksForNewFood[randomIdx].x && ob.y === availableBlocksForNewFood[randomIdx].y));
-        }
-    }
-
-    private generateObstacles = (): void =>{
-        let availableBlocksForObstacles: Obstacle[] = [];
-        for (let row = 0; row < this.rows; row++) {     // Fill it up
-            for (let column = 0; column < this.columns; column++) {
-                const availableBlock: Obstacle = { x: column, y: row };
-                availableBlocksForObstacles.push(availableBlock);
-            }
-        }
-
-        while (this.staticObstacles.length < this.amountOfStaticObstacles
-     && availableBlocksForObstacles.length > 0) {
-            const randomIdx: number = Math.floor(Math.random() * availableBlocksForObstacles.length);
-            this.staticObstacles.push({ ...availableBlocksForObstacles[randomIdx] });
-
-            // Make this used ob now unavailable
-            availableBlocksForObstacles = availableBlocksForObstacles.filter(ob => !(ob.x === availableBlocksForObstacles[randomIdx].x && ob.y === availableBlocksForObstacles[randomIdx].y));
-        }
-    }
-
-    private generateMovingObstacles = (): void =>{
-        const randomDirection = (): string => {
-            const directions = ["UP", "DOWN", "LEFT", "RIGHT"];
-            return directions[Math.floor(Math.random() * 4)];
-        };
-
-        let availableBlocksForMovingObstacles: MovingObstacle[] = [];
-        for (let row = 0; row < this.rows; row++) {     // Fill it up
-            for (let column = 0; column < this.columns; column++) {
-                const availableBlock: MovingObstacle = new MovingObstacle(this, {x: column, y: row}, randomDirection());
-                availableBlocksForMovingObstacles.push(availableBlock);
-            }
-        }
-
-        // Food cannot spawn on staticObstacles => Remove the blocks taken by staticObstacles
-        availableBlocksForMovingObstacles = availableBlocksForMovingObstacles.filter(ob => !this.staticObstacles.some(staticObstacle => ob.position.x === staticObstacle.x && ob.position.y === staticObstacle.y));
-
-        while (this.movingObstacles.length < this.amountOfMovingObstacles
-     &&     availableBlocksForMovingObstacles.length > 0) {
-            const randomIdx: number = Math.floor(Math.random() * availableBlocksForMovingObstacles.length);
-            this.movingObstacles.push(availableBlocksForMovingObstacles[randomIdx]);
-            // Make this used ob now unavailable
-            availableBlocksForMovingObstacles = availableBlocksForMovingObstacles.filter(ob => !(ob.position.x === availableBlocksForMovingObstacles[randomIdx].position.x && ob.position.y === availableBlocksForMovingObstacles[randomIdx].position.y));
-        }
-    }
-
+    
     private isGameOver = (): boolean =>{
         const head = this.snakeSegments[0];
         // Check wall collision
@@ -299,101 +224,5 @@ class SinglePlayerLogic {
 
         return false;
     }
-  
-    private drawBoard = (): void =>{
-        for(let i = 0; i < this.snakeSegments.length; i++){
-            const segment = this.snakeSegments[i];
-            this.setBlockColor(segment.y, segment.x, segment.color); // <-- Reihenfolge geändert!
-        }
-        for (const staticObstacle of this.staticObstacles) {
-            this.setBlockColor(staticObstacle.y, staticObstacle.x, "blue"); // <-- Reihenfolge geändert!
-        }
-        for (const food of this.food) {
-            this.setBlockColor(food.y, food.x, "pink"); // <-- Reihenfolge geändert!
-        }
-        for (const movingObstacle of this.movingObstacles){
-            this.setBlockColor(movingObstacle.position.y, movingObstacle.position.x, "#30D5C8"); // <-- Reihenfolge geändert!
-        }
-    }
-    
-    saveScore(name: string, score: number) {
-        const leaderboard: LeaderboardEntry[] = JSON.parse(localStorage.getItem('leaderboard') || '[]');
-        const existingEntryIndex = leaderboard.findIndex(entry => entry.name === name);
-        if (existingEntryIndex !== -1) {
-            leaderboard[existingEntryIndex].score = Math.max(leaderboard[existingEntryIndex].score, score);
-        } else {
-            leaderboard.push({ name, score });
-        }
-        leaderboard.sort((a: LeaderboardEntry, b: LeaderboardEntry) => b.score - a.score); // Sortiere nach Punkten, absteigend
-        localStorage.setItem('leaderboard', JSON.stringify(leaderboard));
-    }
-
-    displayLeaderboard() {
-        const leaderboard: LeaderboardEntry[] = JSON.parse(localStorage.getItem('leaderboard') || '[]');
-        const leaderboardContainer = document.querySelector('.leaderboard.left');
-        if (leaderboardContainer) {
-            leaderboardContainer.innerHTML = '<h3>Local Highscores</h3>';
-            leaderboard.forEach((entry: LeaderboardEntry) => {
-                const entryElement = document.createElement('div');
-                entryElement.textContent = `${entry.name}: ${entry.score}`;
-                leaderboardContainer.appendChild(entryElement);
-            });
-        } else {
-            console.error('Leaderboard container not found');
-        }
-    }
-
-    // WIP: Sends the score to the backend and updates the global leaderboard
-    uploadScore(name: string, score: number) {
-        // Calculate game duration in seconds
-        const gameDuration = Math.floor(this.stopWatch.getTime() / 1000);
-        fetch('http://localhost:3000/highscores', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ 
-                playerName: name, 
-                score,
-                gameDuration 
-            })
-        })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            return response.json();
-        })
-        .then(data => {
-            console.log('Score uploaded successfully:', data);
-        })
-        .catch(error => {
-            console.error('Error uploading score:', error);
-        });
-    }
-
-
-    private playGameOverSound() {
-        if (this.gameOverAudio) {
-            this.gameOverAudio.currentTime = 0;
-            this.gameOverAudio.play();
-        }
-    }
-
-    private playBackgroundMusic() {
-        if (this.backgroundMusic) {
-            this.backgroundMusic.currentTime = 0;
-            this.backgroundMusic.play();
-        }
-    }
-
-    private stopBackgroundMusic() {
-        if (this.backgroundMusic) {
-            this.backgroundMusic.pause();
-            this.backgroundMusic.currentTime = 0;
-        }
-    }
-
-
 }
 export default SinglePlayerLogic;

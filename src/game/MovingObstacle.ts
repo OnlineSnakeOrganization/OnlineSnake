@@ -60,7 +60,7 @@ class MovingObstacle{
             this.position = {x: new_x, y: new_y};
         }else{
 
-            // Nur Richtung ändern, aber NICHT bewegen!
+            // Rotate the direction of the obstacle clockwise.
             switch(this.direction){
                 case "UP":
                     this.direction = "RIGHT";
@@ -78,7 +78,6 @@ class MovingObstacle{
                     this.direction = "UP";
                     break;
             }
-            // Nach Richtungswechsel KEINE Bewegung in diesem Tick!
         }
 
     }
