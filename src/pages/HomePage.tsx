@@ -60,7 +60,8 @@ const HomePage: React.FC = () => {
           <input type="text" placeholder="Insert your name" id="playerName"></input>
         </div>
         <button onClick={() => {
-          const playerName = (document.getElementById('playerName') as HTMLInputElement).value.trim();
+          const playerName = (document.getElementById('playerName') as HTMLInputElement).value.trim(); 
+          //                   Trim HTML characters (<, >, /, \) to prevent injection attacks here? ^ 
           if (playerName) {
             localStorage.setItem('playerName', playerName); // Save player name to localStorage
             startGame();      // Sets the ingame variable to true

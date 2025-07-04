@@ -12,7 +12,7 @@ const columns = 15;
 const blockWidth = 30;
 const blockHeight = 30;
 
-type Block = { key: string, color: string };
+// type Block = { key: string, color: string }; // The builder flagged this. Commented, now Canvas works.
 
 const GamePage: React.FC = () => {
   const navigate = useNavigate();
