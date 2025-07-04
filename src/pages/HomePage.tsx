@@ -55,10 +55,15 @@ const HomePage: React.FC = () => {
         <h3>Local Highscores</h3>
       </div>
       <div className="container">
+        {/* Title */}
         <h1 className="title">Online-Snake</h1>
+        
+        {/* Player Name Box */}
         <div className="input-container">
           <input type="text" placeholder="Insert your name" id="playerName"></input>
         </div>
+
+        {/* Singleplayer Button */}
         <button onClick={() => {
           const playerName = (document.getElementById('playerName') as HTMLInputElement).value.trim(); 
           //                   Trim HTML characters (<, >, /, \) to prevent injection attacks here? ^ 
@@ -70,16 +75,41 @@ const HomePage: React.FC = () => {
             alert("Please enter a valid name.");
           }
         }}>Singleplayer</button>
-        <button onClick={() => { }}>Multiplayer</button>
+
+        {/* Multiplayer Button (WORK IN PROGRESS) */}
+        <button onClick={() => {
+          const ws = new WebSocket('ws://localhost:3000/ws');
+          ws.onopen = () => {
+            console.log('WebSocket connected');
+            const playerName = (document.getElementById('playerName') as HTMLInputElement).value.trim();
+            if (playerName) {
+              ws.send(playerName + ' has joined the game');
+            } else {
+              alert("Please enter a valid name.");
+            }
+          };
+          ws.onmessage = (event: MessageEvent) => {
+            console.log('Message from server:', event.data);
+          };
+          ws.onclose = () => {
+            console.log('WebSocket connection closed');
+          };
+          ws.onerror = (error: Event) => {
+            console.error('WebSocket error:', error);
+          };
+        }}>Multiplayer</button>
       </div>
+
+      { /* Global Highscores Section */}
       <div className="leaderboard right">
         <h3>Global Highscores</h3>
         {globalHighscores.length === 0 && <div>No scores yet.</div>}
         {globalHighscores.map((entry, idx) => (
           <div key={idx}>{entry.playerName}: {entry.score}</div>
         ))}
-
       </div>
+
+      {/* Help Icon */}
       <div
         className="help-icon"
         style={{ position: 'fixed', bottom: 24, right: 24, zIndex: 10000, cursor: 'pointer' }}
