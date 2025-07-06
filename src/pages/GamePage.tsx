@@ -6,6 +6,7 @@ import '../css/stars.css';
 import SinglePlayerLogic from "../game/SinglePlayerLogic";
 import GameOverDialog from "../components/GameOverDialog";
 import appleImg from "../assets/Apple_Online_Snake.png"; // Import the apple image
+import asteroidImg from "../assets/asteroid.png"; // Import the asteroid image
 
 const rows = 15;
 const columns = 15;
@@ -33,14 +34,34 @@ const GamePage: React.FC = () => {
     foodImageRef.current = img;
   }, []);
 
-  // HIER DIE FUNKTION EINFÜGEN:
+  const asteroidImageRef = useRef<HTMLImageElement | null>(null);
+
+  useEffect(() => {
+    const img = new window.Image();
+    img.src = asteroidImg;
+    asteroidImageRef.current = img;
+  }, []);
+
   function drawBoard() {
     const ctx = canvasRef.current?.getContext("2d");
     if (!ctx || !logic) return;
 
-    // Hintergrund
-    ctx.fillStyle = "black";
-    ctx.fillRect(0, 0, columns * blockWidth, rows * blockHeight);
+    //Chessboard Background
+    for (let y = 0; y < rows; y++){
+      for (let x = 0; x < columns; x++){
+        if ((x + y) % 2 === 0) {
+          ctx.fillStyle = "#222"; // darker square color
+        }else{
+          ctx.fillStyle = "#262626"; //lighter square color
+        }
+        ctx.fillRect(
+          x * blockWidth,
+          y * blockHeight,
+          blockWidth,
+          blockHeight
+        );
+      }
+    }
 
     // Snake zeichnen
     logic.snakeSegments.forEach(segment => {
@@ -77,26 +98,36 @@ const GamePage: React.FC = () => {
 
     // Statische Hindernisse zeichnen
     logic.staticObstacles?.forEach(ob => {
-      ctx.fillStyle = "blue";
-      ctx.fillRect(
-        ob.x * blockWidth,
-        ob.y * blockHeight,
-        blockWidth,
-        blockHeight
-      );
+      if(asteroidImageRef.current && asteroidImageRef.current.complete){
+        ctx.drawImage(
+          asteroidImageRef.current,
+          ob.x * blockWidth,
+          ob.y * blockHeight,
+          blockWidth,
+          blockHeight
+        );
+      }else{
+        //if the image is not loaded yet, draw a fallback rectangle
+        ctx.fillStyle = "blue";
+        ctx.fillRect(
+          ob.x * blockWidth,
+          ob.y * blockHeight,
+          blockWidth,
+          blockHeight
+        );
+      }
     });
-
-    // Bewegliche Hindernisse zeichnen
+    //Moving Obstacles 
     logic.movingObstacles?.forEach(ob => {
-      ctx.fillStyle = "#30D5C8";
-      ctx.fillRect(
-        ob.position.x * blockWidth,
-        ob.position.y * blockHeight,
-        blockWidth,
-        blockHeight
-      );
-    });
-  }
+    ctx.fillStyle = "#30D5C8";
+    ctx.fillRect(
+      ob.position.x * blockWidth,
+      ob.position.y * blockHeight,
+      blockWidth,
+      blockHeight
+    );
+  });
+}
 
   //Creates a new logic object
   useEffect(() => {
