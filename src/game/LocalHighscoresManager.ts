@@ -31,7 +31,7 @@ class LocalHighscoresManager{
     public uploadScore(name: string, score: number, time: number) {
         // Calculate game duration in seconds
         const gameDuration = Math.floor(time / 1000);
-        fetch('http://localhost:3000/highscores', {
+        fetch("http://localhost:3000/highscores", {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'

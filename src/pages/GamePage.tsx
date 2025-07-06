@@ -1,6 +1,6 @@
-import React, { useContext, useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { GameContext } from "../context/GameContext";
+import { useGame } from "../context/GameContext";
 import '../css/game.css';
 import '../css/stars.css';
 import SinglePlayerLogic from "../game/SinglePlayerLogic";
@@ -14,7 +14,7 @@ const blockHeight = 30;
 
 const GamePage: React.FC = () => {
   const navigate = useNavigate();
-  const { inGame, endGame } = useContext(GameContext);
+  const { inGame, gameMode, endGame } = useGame();
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -98,38 +98,43 @@ const GamePage: React.FC = () => {
     });
   }
 
+  //Creates a new logic object
   useEffect(() => {
-    if (!inGame) {
+    if (!inGame) { //Navigate clients to the homepage if they try to enter the GamePage using its URL directly.
       navigate("/");
     } else {
-      const newLogic = new SinglePlayerLogic(
-        rows,
-        columns,
-        false,
-        () => { }, // Dummy setBlockColor
-        () => { }, // Dummy clearBoard
-        setCurrentSnakeLength,
-        setPlayTime,
-        () => setShowGameOverDialog(true)
-      );
+      let newLogic: SinglePlayerLogic;// | MultiPlayerLogic;
+      if(gameMode === "SinglePlayer"){
+        newLogic = new SinglePlayerLogic(
+          rows, columns, false,
+          setCurrentSnakeLength,
+          setPlayTime,
+          () => setShowGameOverDialog(true)
+          );
+      }else{
+        newLogic = new SinglePlayerLogic(
+          rows, columns, true,
+          setCurrentSnakeLength,
+          setPlayTime,
+          () => setShowGameOverDialog(true)
+          );
+      }
+      
       setLogic(newLogic);
-      //newLogic.start();
-      return () => {
-        newLogic.exitGame();
-      };
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [inGame]);
+  }, []);
 
+  // Start running the game when the logic object has been set.
   useEffect(() => {
     if (logic) {
       logic.start();
-      // drawBoard();  // <-- Entfernen!
     }
   }, [logic]);
 
   // GameOver Dialog Overlay
   useEffect(() => {
+    //Calls the Cleanup Function
     if (!showGameOverDialog) return;
     const keyListener = (e: KeyboardEvent) => {
       if (e.key === 'r' || e.key === 'R') {
@@ -139,8 +144,11 @@ const GamePage: React.FC = () => {
       }
     };
     window.addEventListener('keydown', keyListener);
-    return () => window.removeEventListener('keydown', keyListener);
-  }, [showGameOverDialog, logic]);
+    //Sets the Cleanup Function
+    return () => {
+      window.removeEventListener('keydown', keyListener)
+    };
+  }, [showGameOverDialog]);
 
   // ESC key: Exit to menu
   useEffect(() => {
@@ -182,7 +190,7 @@ const GamePage: React.FC = () => {
     if (muted) {
       audioRef.current?.pause();
     } else {
-      audioRef.current?.play().catch(() => { });
+      audioRef.current?.play().catch(() => {});
     }
   }, [muted]);
 
@@ -231,17 +239,21 @@ const GamePage: React.FC = () => {
         <GameOverDialog
           onRestart={() => {
             setShowGameOverDialog(false);
+            console.log("restart click")
             logic?.start();
           }}
           onMenu={() => {
             setShowGameOverDialog(false);
-            if (logic) logic.exitGame();
-            endGame();
-            navigate("/");
+            console.log("Menu Click")
+            if (logic){
+              logic.exitGame();
+              endGame();
+              navigate("/");
+            }
+            
           }}
         />
       )}
-      <audio ref={audioRef} src="/src/assets/background.mp3" loop />
     </>
   );
 };

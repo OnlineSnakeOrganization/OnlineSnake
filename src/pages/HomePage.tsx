@@ -12,7 +12,7 @@ interface Highscore {
 }
 
 const HomePage: React.FC = () => {
-  const { loadGame: startGame } = useGame();
+  const { loadGame: startGame, endGame, setMode} = useGame();
   const navigate = useNavigate();
 
   const [globalHighscores, setGlobalHighscores] = useState<Highscore[]>([]);
@@ -20,7 +20,6 @@ const HomePage: React.FC = () => {
 
   useEffect(() => {
     displayLeaderboard();
-
     // Fetch global highscores from backend
     fetch('http://localhost:3000/highscores')
       .then(res => res.json())
@@ -69,6 +68,7 @@ const HomePage: React.FC = () => {
           //                   Trim HTML characters (<, >, /, \) to prevent injection attacks here? ^ 
           if (playerName) {
             localStorage.setItem('playerName', playerName); // Save player name to localStorage
+            setMode("SinglePlayer");
             startGame();      // Sets the ingame variable to true
             navigate("/game"); // Loads the game page
           } else {
@@ -78,25 +78,33 @@ const HomePage: React.FC = () => {
 
         {/* Multiplayer Button (WORK IN PROGRESS) */}
         <button onClick={() => {
-          const ws = new WebSocket('ws://localhost:3000/ws');
-          ws.onopen = () => {
-            console.log('WebSocket connected');
+          console.log('Connecting to Server...');
             const playerName = (document.getElementById('playerName') as HTMLInputElement).value.trim();
             if (playerName) {
-              ws.send(playerName + ' has joined the game');
+              const ws = new WebSocket('ws://localhost:3000/ws');
+              ws.onopen = () => {
+                console.log("Connection Established!")
+                ws.send(playerName + ' has joined the game');
+                setMode("MultiPlayer");
+                startGame();
+                navigate("/game");
+              };
+              ws.onmessage = (event: MessageEvent) => {
+                console.log('Message from server:', event.data);
+              };
+              ws.onclose = () => {
+                console.log('Connection closed.');
+                endGame();
+                navigate("/");
+              };
+              ws.onerror = (error: Event) => {
+                console.error('WebSocket error:', error);
+              };
+              
             } else {
               alert("Please enter a valid name.");
             }
-          };
-          ws.onmessage = (event: MessageEvent) => {
-            console.log('Message from server:', event.data);
-          };
-          ws.onclose = () => {
-            console.log('WebSocket connection closed');
-          };
-          ws.onerror = (error: Event) => {
-            console.error('WebSocket error:', error);
-          };
+          
         }}>Multiplayer</button>
       </div>
 

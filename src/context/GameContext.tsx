@@ -2,11 +2,15 @@
 
 import React, { createContext, useContext, useState, ReactNode } from "react";
 
+type GameMode = "SinglePlayer" | "MultiPlayer"
+
 // GameContext variables and the methods to change thier value
 type GameState = {
   inGame: boolean;            //true if inGame, false if not
+  gameMode: GameMode;         //true if singleplayer, false if multiplayer
   loadGame: () => void;       //Sets inGame to true.
   endGame: () => void;        //Sets inGame to false.
+  setMode: (mode: GameMode) => void;
 };
 
 
@@ -18,13 +22,16 @@ interface GameProviderProps {
 // Create the context
 export const GameContext = createContext<GameState>({
   inGame: false,
+  gameMode: "SinglePlayer",
   loadGame: () => {},
-  endGame: () => {}
+  endGame: () => {},
+  setMode: () => {}
 });
 
 // Create a provider component to make the state available
 export const GameProvider: React.FC<GameProviderProps> = ({ children }) => {
   const [inGame, setInGame] = useState(false);
+  const [gameMode, setGameMode] = useState<GameMode>("SinglePlayer")
 
   const setInGameToTrue = () => {
     setInGame(true);
@@ -34,8 +41,12 @@ export const GameProvider: React.FC<GameProviderProps> = ({ children }) => {
     setInGame(false);
   };
 
+  const setMode = (mode: GameMode) =>{
+    setGameMode(mode);
+  }
+
   return (
-    <GameContext.Provider value={{ inGame: inGame, loadGame: setInGameToTrue, endGame: setInGameToFalse }}>
+    <GameContext.Provider value={{ inGame: inGame, gameMode: gameMode, loadGame: setInGameToTrue, endGame: setInGameToFalse, setMode: setMode }}>
       {children} {/* Render the children passed to this provider */}
     </GameContext.Provider>
   );

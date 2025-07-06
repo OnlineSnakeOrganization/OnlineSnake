@@ -1,6 +1,6 @@
 import Stopwatch from "../game/Stopwatch";
-import DiagonalController from "./controllers/DiagonalController";
-import StraightController from "./controllers/StraightController";
+import DiagonalController from "./controllers/singleplayer/DiagonalController";
+import StraightController from "./controllers/singleplayer/StraightController";
 import MovingObstacle from "./MovingObstacle";
 
 import EntityGenerator from "./EntityGenerator";
@@ -24,8 +24,6 @@ class SinglePlayerLogic {
     public columns: number;
     public wallsAreDeadly: boolean;
 
-    public setBlockColor: (row: number, column: number, newColor: string) => void;  //Method from Gamepage
-    private clearBoard: () => void;                                                 //Method from Gamepage
     private displaySnakeLength: (length: number) => void;                           //Method from Gamepage
     private painter: Painter;
     private stopWatch: Stopwatch;
@@ -47,8 +45,6 @@ class SinglePlayerLogic {
         rows: number,
         columns: number,
         wallsAreDeadly: boolean,
-        setBlockColor: (row: number, column: number, newColor: string) => void, // <-- Reihenfolge geändert!
-        clearBoard: () => void,
         displaySnakeLength: (length: number) => void,
         displayTime: (time: string) => void,
         onGameOver?: () => void
@@ -56,8 +52,6 @@ class SinglePlayerLogic {
         this.rows = rows;
         this.columns = columns;
         this.wallsAreDeadly = wallsAreDeadly;
-        this.setBlockColor = setBlockColor; // Reihenfolge passt jetzt!
-        this.clearBoard = clearBoard;
         this.onGameOver = onGameOver;
         this.displaySnakeLength = displaySnakeLength;
 
@@ -94,8 +88,7 @@ class SinglePlayerLogic {
 
     public start(): void {
         // If running intervals exist, clear them.
-        clearInterval(this.snakeInterval);
-        clearInterval(this.obstacleInterval);
+        this.clearIntervals();
         this.audioPlayer.stopAllSounds();
 
         // Resetting all Game-Variables
@@ -104,7 +97,6 @@ class SinglePlayerLogic {
         this.food = [];
         this.staticObstacles = [];
         this.movingObstacles = [];
-        this.clearBoard();
         this.stopWatch.reset();
         this.stopWatch.start();
     
@@ -117,6 +109,7 @@ class SinglePlayerLogic {
         this.entityGenerator.generateObstacles();
         this.entityGenerator.generateMovingObstacles();
         this.entityGenerator.generateFood();
+        this.controller?.disable();
         if(this.diagonalMovementAllowed){
             this.controller = new DiagonalController(document, this);
         }else{
@@ -128,7 +121,7 @@ class SinglePlayerLogic {
         this.obstacleInterval = setInterval(this.obstacleLoop, 1000);
     }
 
-    //Stops the snake, background ambience and 
+    //Stops the snake and background ambience.
     public killSnake = (): void => {
         clearInterval(this.snakeInterval);
         this.stopWatch.stop();
@@ -184,11 +177,8 @@ class SinglePlayerLogic {
                 this.displaySnakeLength(this.snakeSegments.length);
                 this.painter.ApplyColorsToSnakeSegments();
             } else {
-                const lastSegment: SnakeSegment = this.snakeSegments[this.snakeSegments.length - 1];
-                this.setBlockColor(lastSegment.y, lastSegment.x, "black") // <-- Reihenfolge geändert!
                 this.snakeSegments.pop(); // Remove the tail if no food is eaten
             }
-            this.painter.drawBoard();
         }
     }
 
@@ -197,7 +187,6 @@ class SinglePlayerLogic {
         for(const obstacle of this.movingObstacles){
             obstacle.moveObstacle();
         }
-        this.painter.drawBoard();
     }
     
     private isGameOver = (): boolean =>{

@@ -55,8 +55,6 @@ class MovingObstacle{
         
 
         if(!collisionDetected){
-            // Altes Feld löschen (y, x, "black")
-            this.logic.setBlockColor(this.position.y, this.position.x, "black");
             this.position = {x: new_x, y: new_y};
         }else{
 

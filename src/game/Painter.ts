@@ -27,22 +27,6 @@ class Painter{
             this.logic.snakeSegments[i-1].color = this.logic.snakeSegments[i].color;
         }
     }
-  
-    public drawBoard = (): void =>{
-        for(let i = 0; i < this.logic.snakeSegments.length; i++){
-            const segment = this.logic.snakeSegments[i];
-            this.logic.setBlockColor(segment.y, segment.x, segment.color); // <-- Reihenfolge geändert!
-        }
-        for (const staticObstacle of this.logic.staticObstacles) {
-            this.logic.setBlockColor(staticObstacle.y, staticObstacle.x, "blue"); // <-- Reihenfolge geändert!
-        }
-        for (const food of this.logic.food) {
-            this.logic.setBlockColor(food.y, food.x, "pink"); // <-- Reihenfolge geändert!
-        }
-        for (const movingObstacle of this.logic.movingObstacles){
-            this.logic.setBlockColor(movingObstacle.position.y, movingObstacle.position.x, "#30D5C8"); // <-- Reihenfolge geändert!
-        }
-    }
 }
 
 export default Painter;
