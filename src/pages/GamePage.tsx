@@ -8,6 +8,8 @@ import GameOverDialog from "../components/GameOverDialog";
 import appleImg from "../assets/Apple_Online_Snake.png"; // Import the apple image
 import MultiplayerLogic from "../game/logic/MultiPlayerLogic";
 
+import asteroidImg from "../assets/asteroid.png"; // Import the asteroid image
+
 //Standard rows and columns for singleplayer
 let rows = 15;
 let columns = 15;
@@ -35,7 +37,14 @@ const GamePage: React.FC = () => {
     foodImageRef.current = img;
   }, []);
 
-  // Paints the entire board
+  const asteroidImageRef = useRef<HTMLImageElement | null>(null);
+
+  useEffect(() => {
+    const img = new window.Image();
+    img.src = asteroidImg;
+    asteroidImageRef.current = img;
+  }, []);
+
   function drawBoard() {
     const ctx = canvasRef.current?.getContext("2d");
     if (!ctx || !logic) return;
@@ -47,6 +56,23 @@ const GamePage: React.FC = () => {
     // Hintergrund
     ctx.fillStyle = "black";
     ctx.fillRect(0, 0, columns * blockWidth, rows * blockHeight);
+    
+    //Chessboard Background
+    for (let y = 0; y < rows; y++){
+      for (let x = 0; x < columns; x++){
+        if ((x + y) % 2 === 0) {
+          ctx.fillStyle = "#222"; // darker square color
+        }else{
+          ctx.fillStyle = "#262626"; //lighter square color
+        }
+        ctx.fillRect(
+          x * blockWidth,
+          y * blockHeight,
+          blockWidth,
+          blockHeight
+        );
+      }
+    }
 
     // Food zeichnen
     logic.getFood().forEach(food => {
@@ -70,19 +96,30 @@ const GamePage: React.FC = () => {
       }
     });
 
-    // Statische Hindernisse zeichnen
-    logic.getStaticObstacles()?.forEach(ob => {
-      ctx.fillStyle = "blue";
-      ctx.fillRect(
-        ob.x * blockWidth,
-        ob.y * blockHeight,
-        blockWidth,
-        blockHeight
-      );
+    //Draw Static Obstacles
+    logic.getStaticObstacles().forEach(ob => {
+      if(asteroidImageRef.current && asteroidImageRef.current.complete){
+        ctx.drawImage(
+          asteroidImageRef.current,
+          ob.x * blockWidth,
+          ob.y * blockHeight,
+          blockWidth,
+          blockHeight
+        );
+      }else{
+        //if the image is not loaded yet, draw a fallback rectangle
+        ctx.fillStyle = "blue";
+        ctx.fillRect(
+          ob.x * blockWidth,
+          ob.y * blockHeight,
+          blockWidth,
+          blockHeight
+        );
+      }
     });
 
     if(logic instanceof SinglePlayerLogic){
-      // Snake zeichnen
+      //Draw all snakes
       logic.getSnakeSegments().forEach(segment => {
         ctx.fillStyle = segment.color;
         ctx.fillRect(
@@ -93,7 +130,7 @@ const GamePage: React.FC = () => {
         );
       });
 
-      // Bewegliche Hindernisse zeichnen
+      //Draw all moving obstacles
       logic.getMovingObstacles().forEach(ob => {
         ctx.fillStyle = "#30D5C8";
         ctx.fillRect(
@@ -104,7 +141,7 @@ const GamePage: React.FC = () => {
         );
       });
     }else{
-      // Snakes zeichnen
+      //Draw all snakes
       logic.getPlayers().forEach(player =>{
         player.snakeSegments.forEach(segment => {
         ctx.fillStyle = segment.color || "ffffff";
@@ -117,7 +154,7 @@ const GamePage: React.FC = () => {
         });
       });
 
-      // Bewegliche Hindernisse zeichnen
+      //Draw all moving obstacles
       logic.getMovingObstacles().forEach(ob => {
         ctx.fillStyle = "#30D5C8";
         ctx.fillRect(
