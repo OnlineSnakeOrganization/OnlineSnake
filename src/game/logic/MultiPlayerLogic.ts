@@ -1,5 +1,5 @@
 import Stopwatch from "../Stopwatch";
-import DiagonalController from "../controllers/multiplayer/DiagonalController";
+
 import StraightController from "../controllers/multiplayer/StraightController";
 
 import AudioPlayer from "../AudioPlayer";
@@ -35,7 +35,7 @@ class MultiplayerLogic {
     
     private snakeDirection: string;  //The direction the snake is facing and sneaking towards if no key is held.
     private diagonalMovementAllowed: boolean;
-    private controller: StraightController | DiagonalController; //Which controller is used depends on 'diagonalMovementAllowed'
+    private controller: StraightController; //Which controller is used depends on 'diagonalMovementAllowed' (Add DiagonalController in the future)
 
     private onGameOver: () => void;    //This method triggers the code on the GamePage
     private endGame: () => void;
@@ -174,7 +174,7 @@ class MultiplayerLogic {
         //this.displaySnakeLength(this.snakeSegments.length);
         this.controller?.disable();
         if(this.diagonalMovementAllowed){
-            this.controller = new DiagonalController(document, this);
+            this.controller = new StraightController(document, this);   //Add the diagonal controller
         }else{
             this.controller = new StraightController(document, this);
         }
