@@ -1,4 +1,4 @@
-import SinglePlayerLogic from "./SinglePlayerLogic";
+import SinglePlayerLogic from "./logic/SinglePlayerLogic";
 
 type Position = {x: number, y: number};
 

@@ -3,25 +3,27 @@ import { useNavigate } from "react-router-dom";
 import { useGame } from "../context/GameContext";
 import '../css/game.css';
 import '../css/stars.css';
-import SinglePlayerLogic from "../game/SinglePlayerLogic";
+import SinglePlayerLogic from "../game/logic/SinglePlayerLogic";
 import GameOverDialog from "../components/GameOverDialog";
 import appleImg from "../assets/Apple_Online_Snake.png"; // Import the apple image
+import MultiplayerLogic from "../game/logic/MultiPlayerLogic";
 
-const rows = 15;
-const columns = 15;
+//Standard rows and columns for singleplayer
+let rows = 15;
+let columns = 15;
 const blockWidth = 30;
 const blockHeight = 30;
 
 const GamePage: React.FC = () => {
   const navigate = useNavigate();
-  const { inGame, gameMode, endGame } = useGame();
+  const { inGame, gameMode, endGame, ws, setWsObject } = useGame();
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const [currentSnakeLength, setCurrentSnakeLength] = useState(1);
   const [playTime, setPlayTime] = useState("");
-  const [logic, setLogic] = useState<SinglePlayerLogic | null>(null);
+  const [logic, setLogic] = useState<SinglePlayerLogic | MultiplayerLogic | undefined>(undefined);
   const [showGameOverDialog, setShowGameOverDialog] = useState(false);
   const [muted, setMuted] = useState(() => localStorage.getItem("musicMuted") === "true");
 
@@ -33,28 +35,21 @@ const GamePage: React.FC = () => {
     foodImageRef.current = img;
   }, []);
 
-  // HIER DIE FUNKTION EINFÜGEN:
+  // Paints the entire board
   function drawBoard() {
     const ctx = canvasRef.current?.getContext("2d");
     if (!ctx || !logic) return;
+
+    //Das kann man 100% noch optimieren
+    rows = logic.getRows();
+    columns = logic.getColumns();
 
     // Hintergrund
     ctx.fillStyle = "black";
     ctx.fillRect(0, 0, columns * blockWidth, rows * blockHeight);
 
-    // Snake zeichnen
-    logic.snakeSegments.forEach(segment => {
-      ctx.fillStyle = segment.color || "lime";
-      ctx.fillRect(
-        segment.x * blockWidth,
-        segment.y * blockHeight,
-        blockWidth,
-        blockHeight
-      );
-    });
-
     // Food zeichnen
-    logic.food.forEach(food => {
+    logic.getFood().forEach(food => {
       if (foodImageRef.current && foodImageRef.current.complete) {
         ctx.drawImage(
           foodImageRef.current,
@@ -76,7 +71,7 @@ const GamePage: React.FC = () => {
     });
 
     // Statische Hindernisse zeichnen
-    logic.staticObstacles?.forEach(ob => {
+    logic.getStaticObstacles()?.forEach(ob => {
       ctx.fillStyle = "blue";
       ctx.fillRect(
         ob.x * blockWidth,
@@ -86,16 +81,53 @@ const GamePage: React.FC = () => {
       );
     });
 
-    // Bewegliche Hindernisse zeichnen
-    logic.movingObstacles?.forEach(ob => {
-      ctx.fillStyle = "#30D5C8";
-      ctx.fillRect(
-        ob.position.x * blockWidth,
-        ob.position.y * blockHeight,
-        blockWidth,
-        blockHeight
-      );
-    });
+    if(logic instanceof SinglePlayerLogic){
+      // Snake zeichnen
+      logic.getSnakeSegments().forEach(segment => {
+        ctx.fillStyle = segment.color;
+        ctx.fillRect(
+          segment.x * blockWidth,
+          segment.y * blockHeight,
+          blockWidth,
+          blockHeight
+        );
+      });
+
+      // Bewegliche Hindernisse zeichnen
+      logic.getMovingObstacles().forEach(ob => {
+        ctx.fillStyle = "#30D5C8";
+        ctx.fillRect(
+          ob.position.x * blockWidth,
+          ob.position.y * blockHeight,
+          blockWidth,
+          blockHeight
+        );
+      });
+    }else{
+      // Snakes zeichnen
+      logic.getPlayers().forEach(player =>{
+        player.snakeSegments.forEach(segment => {
+        ctx.fillStyle = segment.color || "ffffff";
+        ctx.fillRect(
+          segment.x * blockWidth,
+          segment.y * blockHeight,
+          blockWidth,
+          blockHeight
+        );
+        });
+      });
+
+      // Bewegliche Hindernisse zeichnen
+      logic.getMovingObstacles().forEach(ob => {
+        ctx.fillStyle = "#30D5C8";
+        ctx.fillRect(
+          ob.x * blockWidth,
+          ob.y * blockHeight,
+          blockWidth,
+          blockHeight
+        );
+      });
+    }
   }
 
   //Creates a new logic object
@@ -103,20 +135,25 @@ const GamePage: React.FC = () => {
     if (!inGame) { //Navigate clients to the homepage if they try to enter the GamePage using its URL directly.
       navigate("/");
     } else {
-      let newLogic: SinglePlayerLogic;// | MultiPlayerLogic;
+      let newLogic: SinglePlayerLogic | MultiplayerLogic;
       if(gameMode === "SinglePlayer"){
+        rows = 15;
+        columns = 15;
         newLogic = new SinglePlayerLogic(
-          rows, columns, false,
+          rows, columns, false, true,
           setCurrentSnakeLength,
           setPlayTime,
           () => setShowGameOverDialog(true)
           );
       }else{
-        newLogic = new SinglePlayerLogic(
-          rows, columns, true,
+        newLogic = new MultiplayerLogic(
+          ws,
+          setWsObject,
+          () => setShowGameOverDialog(true),
+          endGame,
+          navigate,
           setCurrentSnakeLength,
           setPlayTime,
-          () => setShowGameOverDialog(true)
           );
       }
       
@@ -194,23 +231,24 @@ const GamePage: React.FC = () => {
     }
   }, [muted]);
 
+  // 
   useEffect(() => {
     let animationFrameId: number;
 
+    //Recursively keeps drawing the board.
     function renderLoop() {
       drawBoard();
       animationFrameId = requestAnimationFrame(renderLoop);
     }
 
-    if (!showGameOverDialog) {
-      animationFrameId = requestAnimationFrame(renderLoop);
-    }
+    animationFrameId = requestAnimationFrame(renderLoop);
 
+    //Gets cancelled if the logic changes
     return () => {
       cancelAnimationFrame(animationFrameId);
     };
 
-  }, [logic, showGameOverDialog]);
+  }, [logic]);
 
   return (
     <>

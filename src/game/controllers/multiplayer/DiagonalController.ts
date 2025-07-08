@@ -1,9 +1,10 @@
 import { ControllerInterface } from "./ControllerInterface";
-import SinglePlayerLogic, { SnakeSegment } from "../SinglePlayerLogic";
+import SinglePlayerLogic, { SnakeSegment } from "../../logic/SinglePlayerLogic";
+import MultiplayerLogic from "../../logic/MultiPlayerLogic";
 
 class DiagonalController implements ControllerInterface{
     public document: Document;
-    public logic: SinglePlayerLogic;
+    public logic: MultiplayerLogic;
     public keyDownListener: (key: KeyboardEvent) => void;
     public keyUpListener: (key: KeyboardEvent) => void;
 
@@ -11,7 +12,7 @@ class DiagonalController implements ControllerInterface{
     private allowedInputsHeld: string[];
     private directionOnNextTick: string;
 
-    constructor(document: Document, logic: SinglePlayerLogic){
+    constructor(document: Document, logic: MultiplayerLogic){
         this.document = document;
         this.logic = logic;
         this.keyUpListener = (key: KeyboardEvent) =>{
@@ -48,8 +49,6 @@ class DiagonalController implements ControllerInterface{
                 }
             }
             if(key.code === "KeyR"){
-                this.logic.clearIntervals();
-                this.disable();
                 this.logic.start();
             }
             if(key.code === "Escape"){

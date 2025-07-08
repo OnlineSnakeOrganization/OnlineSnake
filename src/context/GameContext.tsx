@@ -5,9 +5,14 @@ import React, { createContext, useContext, useState, ReactNode } from "react";
 type GameMode = "SinglePlayer" | "MultiPlayer"
 
 // GameContext variables and the methods to change thier value
+// They are basically global variables
 type GameState = {
+  playerName: string; //playerName is stored in the local storage (localStorage.getItem('playerName') || 'Unknown';)
+  setPlayerName: (playerName: string) => void;
   inGame: boolean;            //true if inGame, false if not
   gameMode: GameMode;         //true if singleplayer, false if multiplayer
+  ws: WebSocket | undefined;              //The WebSocket Object if multiplayer is played (gameMode === false)
+  setWsObject: (ws: WebSocket | undefined) => void;
   loadGame: () => void;       //Sets inGame to true.
   endGame: () => void;        //Sets inGame to false.
   setMode: (mode: GameMode) => void;
@@ -21,17 +26,26 @@ interface GameProviderProps {
 
 // Create the context
 export const GameContext = createContext<GameState>({
+  playerName: "",
+  setPlayerName: () => {},
+
   inGame: false,
-  gameMode: "SinglePlayer",
   loadGame: () => {},
   endGame: () => {},
-  setMode: () => {}
+  
+  gameMode: "SinglePlayer",
+  setMode: () => {},
+  
+  ws: undefined,
+  setWsObject: () => {}
 });
 
 // Create a provider component to make the state available
 export const GameProvider: React.FC<GameProviderProps> = ({ children }) => {
-  const [inGame, setInGame] = useState(false);
-  const [gameMode, setGameMode] = useState<GameMode>("SinglePlayer")
+  const [inGame_, setInGame] = useState(false);
+  const [gameMode_, setMode_] = useState<GameMode>("SinglePlayer")
+  const [ws_, setWsObject_] = useState<WebSocket | undefined>(undefined);
+  const [playerName_, setPlayerName_] = useState<string>(""); //Put validation here?
 
   const setInGameToTrue = () => {
     setInGame(true);
@@ -42,11 +56,32 @@ export const GameProvider: React.FC<GameProviderProps> = ({ children }) => {
   };
 
   const setMode = (mode: GameMode) =>{
-    setGameMode(mode);
+    setMode_(mode);
+  }
+
+  const setWsObject = (ws: WebSocket | undefined) => {
+    setWsObject_(ws);
+  }
+
+  const setPlayerName = (playerName: string) => {
+    setPlayerName_(playerName);
   }
 
   return (
-    <GameContext.Provider value={{ inGame: inGame, gameMode: gameMode, loadGame: setInGameToTrue, endGame: setInGameToFalse, setMode: setMode }}>
+    <GameContext.Provider value={{
+      playerName: playerName_,
+      setPlayerName: setPlayerName,
+
+      inGame: inGame_,
+      loadGame: setInGameToTrue,
+      endGame: setInGameToFalse,
+
+      gameMode: gameMode_,
+      setMode: setMode,
+
+      ws: ws_,
+      setWsObject: setWsObject,
+      }}>
       {children} {/* Render the children passed to this provider */}
     </GameContext.Provider>
   );

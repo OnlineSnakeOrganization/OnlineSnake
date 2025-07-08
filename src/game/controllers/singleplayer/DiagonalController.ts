@@ -1,5 +1,5 @@
 import { ControllerInterface } from "./ControllerInterface";
-import SinglePlayerLogic, { SnakeSegment } from "../../SinglePlayerLogic";
+import SinglePlayerLogic, { SnakeSegment } from "../../logic/SinglePlayerLogic";
 
 class DiagonalController implements ControllerInterface{
     public document: Document;
@@ -91,10 +91,13 @@ class DiagonalController implements ControllerInterface{
         //After moving the snake check if the input is still illegal
         this.isIllegalInputAllowedNow();
         
-        if(!this.logic.wallsAreDeadly){
+        
+        const rows: number = this.logic.getRows();
+        const columns: number = this.logic.getColumns();
+        if(!this.logic.getWallsAreDeadly()){
             //This makes the head appear on the other side of the map if it creeps into a wall.
-            head.x = (head.x + this.logic.columns) % this.logic.columns;
-            head.y = (head.y + this.logic.rows) % this.logic.rows;
+            head.x = (head.x + columns) % columns;
+            head.y = (head.y + rows) % rows;
         }
     }
 

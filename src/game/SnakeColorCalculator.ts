@@ -14,7 +14,7 @@ class SnakeColorCalculator{
         this.endColor.push(parseInt(endColor.substring(4, 6), 16)); // Blue
     }
 
-    //f(x) = a-((a-b)/(l-1))x       !! l-1 != 0
+    //Returns the color for the given SnakeSegment
     getColor(snakeSegment: number, snakeLength: number): string{
         let segmentColor: string = "#";
         const a: number[] = this.startColor;
@@ -23,6 +23,8 @@ class SnakeColorCalculator{
         if(snakeLength === 0) snakeLength = 1;
         for(let i = 0; i < 3; i++) {
             segmentColor = segmentColor + Math.floor(a[i]-((a[i]-b[i])/snakeLength)*snakeSegment).toString(16).padStart(2, "0");
+            //f(x) = a-((a-b)/(l-1))x
+            //and l-1 != 0
         }
         
         return segmentColor;

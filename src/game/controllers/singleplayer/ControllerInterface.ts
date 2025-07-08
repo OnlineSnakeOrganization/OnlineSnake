@@ -1,4 +1,4 @@
-import SinglePlayerLogic, { SnakeSegment } from "../../SinglePlayerLogic";
+import SinglePlayerLogic, { SnakeSegment } from "../../logic/SinglePlayerLogic";
 
 export interface ControllerInterface{
     document: Document;

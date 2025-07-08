@@ -1,5 +1,5 @@
 import { ControllerInterface } from "./ControllerInterface";
-import SinglePlayerLogic, { SnakeSegment } from "../../SinglePlayerLogic";
+import SinglePlayerLogic, { SnakeSegment } from "../../logic/SinglePlayerLogic";
 
 class StraightController implements ControllerInterface{
     public document: Document;
@@ -76,10 +76,12 @@ class StraightController implements ControllerInterface{
         if (this.logic.snakeDirection === 'LEFT') head.x -= 1;
         if (this.logic.snakeDirection === 'RIGHT') head.x += 1;
 
-        if(!this.logic.wallsAreDeadly){
+        if(!this.logic.getWallsAreDeadly()){
             //This makes the head appear on the other side of the map if it creeps into a wall.
-            head.x = (head.x + this.logic.columns) % this.logic.columns;
-            head.y = (head.y + this.logic.rows) % this.logic.rows;
+            const columns: number = this.logic.getColumns();
+            const rows: number = this.logic.getRows();
+            head.x = (head.x + columns) % columns;
+            head.y = (head.y + rows) % rows;
         }
     }
 

@@ -1,31 +1,31 @@
-import Stopwatch from "../game/Stopwatch";
-import DiagonalController from "./controllers/singleplayer/DiagonalController";
-import StraightController from "./controllers/singleplayer/StraightController";
-import MovingObstacle from "./MovingObstacle";
+import Stopwatch from "../Stopwatch";
+import DiagonalController from "../controllers/singleplayer/DiagonalController";
+import StraightController from "../controllers/singleplayer/StraightController";
+import MovingObstacle from "../MovingObstacle";
 
-import EntityGenerator from "./EntityGenerator";
-import AudioPlayer from "./AudioPlayer";
-import LocalHighscoresManager from "./LocalHighscoresManager";
-import Painter from "./Painter";
+import EntityGenerator from "../EntityGenerator";
+import AudioPlayer from "../AudioPlayer";
+import LocalHighscoresManager from "../LocalHighscoresManager";
+import SnakePainter from "../Painter";
 export type SnakeSegment = {x: number, y: number, color: string};
 export type Food = {x: number, y: number};
 export type Obstacle = {x: number, y: number};
 
 class SinglePlayerLogic {
-    public snakeSegments: SnakeSegment[];
-    public food: Food[];
+    private snakeSegments: SnakeSegment[];
+    private food: Food[];
     private maxAmountOfFood: number;
-    public staticObstacles: Obstacle[];
+    private staticObstacles: Obstacle[];
     private amountOfStaticObstacles: number;
-    public movingObstacles: MovingObstacle[];
+    private movingObstacles: MovingObstacle[];
     private amountOfMovingObstacles: number;
 
-    public rows: number;
-    public columns: number;
-    public wallsAreDeadly: boolean;
+    private rows: number;
+    private columns: number;
+    private wallsAreDeadly: boolean;
 
     private displaySnakeLength: (length: number) => void;                           //Method from Gamepage
-    private painter: Painter;
+    private painter: SnakePainter;
     private stopWatch: Stopwatch;
     private entityGenerator: EntityGenerator;
     private audioPlayer: AudioPlayer;
@@ -45,6 +45,7 @@ class SinglePlayerLogic {
         rows: number,
         columns: number,
         wallsAreDeadly: boolean,
+        diagonalMovementAllowed: boolean,
         displaySnakeLength: (length: number) => void,
         displayTime: (time: string) => void,
         onGameOver?: () => void
@@ -58,7 +59,7 @@ class SinglePlayerLogic {
         this.maxAmountOfFood = 1;
         this.amountOfStaticObstacles = 7;
         this.amountOfMovingObstacles = 3;
-        this.painter = new Painter(this);
+        this.painter = new SnakePainter(this);
         this.stopWatch = new Stopwatch(displayTime);
         this.entityGenerator = new EntityGenerator(this);
         this.audioPlayer = new AudioPlayer();
@@ -66,12 +67,34 @@ class SinglePlayerLogic {
         
         //We already refresh theese variables in the start method but we still have to give them some value in the constructor.
         this.snakeDirection = "UP";
-        this.diagonalMovementAllowed = true;
+        this.diagonalMovementAllowed = diagonalMovementAllowed;
         this.snakeSegments = [];
         this.food = [];
         this.staticObstacles = [];
         this.movingObstacles = []
         this.controller = new StraightController(document, this);   //Compiler is angry if this is gone
+    }
+    //----------Getter
+    public getSnakeSegments(){
+        return this.snakeSegments;
+    }
+    public getFood(){
+        return this.food;
+    }
+    public getStaticObstacles(){
+        return this.staticObstacles;
+    }
+    public getMovingObstacles(){
+        return this.movingObstacles;
+    }
+    public getRows(){
+        return this.rows;
+    }
+    public getColumns(){
+        return this.columns;
+    }
+    public getWallsAreDeadly(){
+        return this.wallsAreDeadly;
     }
 
     public getAmountOfMovingObstacles(): number{
@@ -85,7 +108,7 @@ class SinglePlayerLogic {
     public getAmountOfStaticObstacles(): number{
         return this.amountOfStaticObstacles;
     }
-
+    //----------
     public start(): void {
         // If running intervals exist, clear them.
         this.clearIntervals();

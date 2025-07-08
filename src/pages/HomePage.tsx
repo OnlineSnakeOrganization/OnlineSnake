@@ -12,7 +12,7 @@ interface Highscore {
 }
 
 const HomePage: React.FC = () => {
-  const { loadGame: startGame, endGame, setMode} = useGame();
+  const { loadGame, setMode, setWsObject} = useGame();
   const navigate = useNavigate();
 
   const [globalHighscores, setGlobalHighscores] = useState<Highscore[]>([]);
@@ -69,7 +69,7 @@ const HomePage: React.FC = () => {
           if (playerName) {
             localStorage.setItem('playerName', playerName); // Save player name to localStorage
             setMode("SinglePlayer");
-            startGame();      // Sets the ingame variable to true
+            loadGame();      // Sets the ingame variable to true
             navigate("/game"); // Loads the game page
           } else {
             alert("Please enter a valid name.");
@@ -78,29 +78,18 @@ const HomePage: React.FC = () => {
 
         {/* Multiplayer Button (WORK IN PROGRESS) */}
         <button onClick={() => {
-          console.log('Connecting to Server...');
             const playerName = (document.getElementById('playerName') as HTMLInputElement).value.trim();
             if (playerName) {
+              localStorage.setItem('playerName', playerName); // Save player name to localStorage
+              console.log('Connecting to Server...');
               const ws = new WebSocket('ws://localhost:3000/ws');
               ws.onopen = () => {
                 console.log("Connection Established!")
-                ws.send(playerName + ' has joined the game');
+                setWsObject(ws);  //Sets the WebSocket Object for further use.
                 setMode("MultiPlayer");
-                startGame();
+                loadGame();
                 navigate("/game");
               };
-              ws.onmessage = (event: MessageEvent) => {
-                console.log('Message from server:', event.data);
-              };
-              ws.onclose = () => {
-                console.log('Connection closed.');
-                endGame();
-                navigate("/");
-              };
-              ws.onerror = (error: Event) => {
-                console.error('WebSocket error:', error);
-              };
-              
             } else {
               alert("Please enter a valid name.");
             }
