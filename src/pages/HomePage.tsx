@@ -21,7 +21,7 @@ const HomePage: React.FC = () => {
   useEffect(() => {
     displayLeaderboard();
     // Fetch global highscores from backend
-    fetch('http://localhost:3000/highscores')
+    fetch('http://https://onlinesnakeserver-production.up.railway.app//highscores')
       .then(res => res.json())
       .then((data: Highscore[]) => {
         setGlobalHighscores(data);
@@ -82,7 +82,7 @@ const HomePage: React.FC = () => {
             if (playerName) {
               localStorage.setItem('playerName', playerName); // Save player name to localStorage
               console.log('Connecting to Server...');
-              const ws = new WebSocket('ws://localhost:3000/ws');
+              const ws = new WebSocket('ws://onlinesnakeserver-production.up.railway.app/ws');
               ws.onopen = () => {
                 console.log("Connection Established!")
                 setWsObject(ws);  //Sets the WebSocket Object for further use.
