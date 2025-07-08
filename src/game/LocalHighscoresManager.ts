@@ -31,7 +31,7 @@ class LocalHighscoresManager{
     public uploadScore(name: string, score: number, time: number) {
         // Calculate game duration in seconds
         const gameDuration = Math.floor(time / 1000);
-        fetch("http://onlinesnakeserver-production.up.railway.app//highscores", {
+        fetch("https://onlinesnakeserver-production.up.railway.app/highscores", {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'

@@ -21,7 +21,7 @@ const HomePage: React.FC = () => {
   useEffect(() => {
     displayLeaderboard();
     // Fetch global highscores from backend
-    fetch('http://onlinesnakeserver-production.up.railway.app/highscores')
+    fetch('https://onlinesnakeserver-production.up.railway.app/highscores')
       .then(res => res.json())
       .then((data: Highscore[]) => {
         setGlobalHighscores(data);
