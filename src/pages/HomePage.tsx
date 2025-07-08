@@ -82,7 +82,7 @@ const HomePage: React.FC = () => {
             if (playerName) {
               localStorage.setItem('playerName', playerName); // Save player name to localStorage
               console.log('Connecting to Server...');
-              const ws = new WebSocket('ws://onlinesnakeserver-production.up.railway.app/ws');
+              const ws = new WebSocket('wss://onlinesnakeserver-production.up.railway.app/ws');
               ws.onopen = () => {
                 console.log("Connection Established!")
                 setWsObject(ws);  //Sets the WebSocket Object for further use.
