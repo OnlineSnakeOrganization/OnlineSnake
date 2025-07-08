@@ -186,10 +186,10 @@ const GamePage: React.FC = () => {
         newLogic = new MultiplayerLogic(
           ws,
           setWsObject,
-          () => setShowGameOverDialog(true),
+          //() => setShowGameOverDialog(true),
           endGame,
           navigate,
-          setCurrentSnakeLength,
+          //setCurrentSnakeLength,
           setPlayTime,
           );
       }

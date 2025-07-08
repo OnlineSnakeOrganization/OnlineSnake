@@ -28,16 +28,16 @@ class MultiplayerLogic {
     private columns: number;
     private wallsAreDeadly: boolean;
 
-    private displaySnakeLength: (length: number) => void;
+    //private displaySnakeLength: (length: number) => void;
     private painter: SnakePainter;
     private stopWatch: Stopwatch;
     private audioPlayer: AudioPlayer;
     
-    private snakeDirection: string;  //The direction the snake is facing and sneaking towards if no key is held.
+    //private snakeDirection: string;  //The direction the snake is facing and sneaking towards if no key is held.
     private diagonalMovementAllowed: boolean;
     private controller: StraightController; //Which controller is used depends on 'diagonalMovementAllowed' (Add DiagonalController in the future)
 
-    private onGameOver: () => void;    //This method triggers the code on the GamePage
+    //private onGameOver: () => void;    //This method triggers the code on the GamePage
     private endGame: () => void;
     private navigate: NavigateFunction;
     private setWsObject: (ws: WebSocket | undefined) => void;
@@ -45,17 +45,17 @@ class MultiplayerLogic {
     constructor(
         ws: WebSocket | undefined,
         setWsObject: (ws: WebSocket | undefined) => void,
-        onGameOver: () => void,
+        //onGameOver: () => void,
         endGame: () => void,
         navigate: NavigateFunction,
-        displaySnakeLength: (length: number) => void,
+        //displaySnakeLength: (length: number) => void,
         displayTime: (time: string) => void
     ) {
         this.setWsObject = setWsObject;
-        this.onGameOver = onGameOver;
+        //this.onGameOver = onGameOver;
         this.endGame = endGame;
         this.navigate = navigate;
-        this.displaySnakeLength = displaySnakeLength;
+        //this.displaySnakeLength = displaySnakeLength;
         
         this.ws = ws;
         this.setupWsHandlers();
@@ -70,7 +70,7 @@ class MultiplayerLogic {
         
         //We already refresh theese variables in the start method but we still have to give them some value in the constructor.
         this.players = [];
-        this.snakeDirection = "UP";
+        //this.snakeDirection = "UP";
         this.diagonalMovementAllowed = false;
         this.food = [];
         this.staticObstacles = [];
@@ -164,7 +164,7 @@ class MultiplayerLogic {
         this.audioPlayer.stopAllSounds();
 
         // Resetting all Game-Variables
-        this.snakeDirection = "UP";
+        //this.snakeDirection = "UP";
         this.food = [];
         this.staticObstacles = [];
         this.movingObstacles = [];

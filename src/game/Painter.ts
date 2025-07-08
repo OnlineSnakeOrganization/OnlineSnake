@@ -1,4 +1,4 @@
-import MultiplayerLogic, { Player, SnakeSegment } from "./logic/MultiPlayerLogic";
+import MultiplayerLogic, { SnakeSegment } from "./logic/MultiPlayerLogic";
 import SinglePlayerLogic from "./logic/SinglePlayerLogic";
 import SnakeColorCalculator from "./SnakeColorCalculator";
 
