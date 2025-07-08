@@ -38,18 +38,20 @@ class MovingObstacle{
         let collisionDetected: boolean = false;
 
         //Let it appear on the other side of the border if the walls are passable
-        if(!this.logic.wallsAreDeadly){
-            new_x = (new_x + this.logic.columns) % this.logic.columns;
-            new_y = (new_y + this.logic.rows) % this.logic.rows;
+        const columns: number = this.logic.getColumns();
+        const rows: number = this.logic.getRows();
+        if(!this.logic.getWallsAreDeadly()){
+            new_x = (new_x + columns) % columns;
+            new_y = (new_y + rows) % rows;
         }else{
-            if (new_x < 0 || new_y < 0 || new_x >= this.logic.columns || new_y >= this.logic.rows) collisionDetected = true;
+            if (new_x < 0 || new_y < 0 || new_x >= columns || new_y >= rows) collisionDetected = true;
         }
 
         if(!collisionDetected){
             collisionDetected = this.checkCollision(new_x, new_y, [
-                ...this.logic.snakeSegments,    //Check for collision with snake
-                ...this.logic.staticObstacles,  //Check for collision with static obstacles
-                ...this.logic.movingObstacles.map(obstacle => obstacle.position)   //Check for collision with other moving obstacles
+                ...this.logic.getSnakeSegments(),    //Check for collision with snake
+                ...this.logic.getStaticObstacles(),  //Check for collision with static obstacles
+                ...this.logic.getMovingObstacles().map(obstacle => obstacle.position)   //Check for collision with other moving obstacles
             ]);
         }
         
