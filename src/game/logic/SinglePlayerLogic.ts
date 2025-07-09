@@ -37,7 +37,7 @@ class SinglePlayerLogic {
     private controller: StraightController | DiagonalController; //Which controller is used depends on 'diagonalMovementAllowed'
   
     private snakeInterval: NodeJS.Timeout | undefined;
-    private obstacleInterval: NodeJS.Timeout | undefined;
+    private movingObstacleInterval: NodeJS.Timeout | undefined;
 
     private onGameOver?: () => void;    //This method triggers the code on the GamePage
 
@@ -141,7 +141,7 @@ class SinglePlayerLogic {
         this.controller.enable();
         this.audioPlayer.playBackgroundMusic();
         this.snakeInterval = setInterval(this.snakeLoop, 125);
-        this.obstacleInterval = setInterval(this.obstacleLoop, 1000);
+        this.movingObstacleInterval = setInterval(this.movingObstacleLoop, 1000);
     }
 
     //Stops the snake and background ambience.
@@ -154,13 +154,13 @@ class SinglePlayerLogic {
 
     public exitGame = (): void =>{
         this.killSnake();
-        clearInterval(this.obstacleInterval);
+        clearInterval(this.movingObstacleInterval);
         this.controller.disable();
     }
 
     public clearIntervals = (): void =>{
         clearInterval(this.snakeInterval);
-        clearInterval(this.obstacleInterval);
+        clearInterval(this.movingObstacleInterval);
     }
       
     private snakeLoop = (): void => {    //Arrow Function because else "this" would behave differently
@@ -206,9 +206,9 @@ class SinglePlayerLogic {
     }
 
     //This function moves all movable obstacles
-    private obstacleLoop = (): void => {
-        for(const obstacle of this.movingObstacles){
-            obstacle.moveObstacle();
+    private movingObstacleLoop = (): void => {
+        for(const movingObstacle of this.movingObstacles){
+            movingObstacle.moveObstacle();
         }
     }
     
