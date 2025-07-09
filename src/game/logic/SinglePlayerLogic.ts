@@ -16,9 +16,9 @@ class SinglePlayerLogic {
     private food: Food[];
     private maxAmountOfFood: number;
     private staticObstacles: Obstacle[];
-    private amountOfStaticObstacles: number;
+    private maxAmountOfStaticObstacles: number;
     private movingObstacles: MovingObstacle[];
-    private amountOfMovingObstacles: number;
+    private maxAmountOfMovingObstacles: number;
 
     private rows: number;
     private columns: number;
@@ -57,8 +57,8 @@ class SinglePlayerLogic {
         this.displaySnakeLength = displaySnakeLength;
 
         this.maxAmountOfFood = 1;
-        this.amountOfStaticObstacles = 7;
-        this.amountOfMovingObstacles = 3;
+        this.maxAmountOfStaticObstacles = 7;
+        this.maxAmountOfMovingObstacles = 3;
         this.painter = new SnakePainter(this);
         this.stopWatch = new Stopwatch(displayTime);
         this.entityGenerator = new EntityGenerator(this);
@@ -97,16 +97,16 @@ class SinglePlayerLogic {
         return this.wallsAreDeadly;
     }
 
-    public getAmountOfMovingObstacles(): number{
-        return this.amountOfMovingObstacles;
+    public getMaxAmountOfMovingObstacles(): number{
+        return this.maxAmountOfMovingObstacles;
     }
 
     public getMaxAmountOfFood(): number{
         return this.maxAmountOfFood;
     }
 
-    public getAmountOfStaticObstacles(): number{
-        return this.amountOfStaticObstacles;
+    public getMaxAmountOfStaticObstacles(): number{
+        return this.maxAmountOfStaticObstacles;
     }
     //----------
     public start(): void {

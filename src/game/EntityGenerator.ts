@@ -49,7 +49,7 @@ class EntityGenerator{
         }
 
         const staticObstacles: Obstacle[] = this.logic.getStaticObstacles();
-        while (staticObstacles.length < this.logic.getAmountOfStaticObstacles()
+        while (staticObstacles.length < this.logic.getMaxAmountOfStaticObstacles()
      && availableBlocksForObstacles.length > 0) {
             const randomIdx: number = Math.floor(Math.random() * availableBlocksForObstacles.length);
             staticObstacles.push({ ...availableBlocksForObstacles[randomIdx] });
@@ -79,7 +79,7 @@ class EntityGenerator{
             .some(staticObstacle => 
                 ob.position.x === staticObstacle.x && ob.position.y === staticObstacle.y));
         const movingObstacles: MovingObstacle[] = this.logic.getMovingObstacles();
-        while (movingObstacles.length < this.logic.getAmountOfMovingObstacles()
+        while (movingObstacles.length < this.logic.getMaxAmountOfMovingObstacles()
      &&     availableBlocksForMovingObstacles.length > 0) {
             const randomIdx: number = Math.floor(Math.random() * availableBlocksForMovingObstacles.length);
             movingObstacles.push(availableBlocksForMovingObstacles[randomIdx]);
