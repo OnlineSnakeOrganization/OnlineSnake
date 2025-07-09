@@ -12,20 +12,26 @@ class LocalHighscoresManager{
         localStorage.setItem('leaderboard', JSON.stringify(leaderboard));
     }
 
-    public displayLeaderboard() {
-        const leaderboard: LeaderboardEntry[] = JSON.parse(localStorage.getItem('leaderboard') || '[]');
-        const leaderboardContainer = document.querySelector('.leaderboard.left');
-        if (leaderboardContainer) {
-            leaderboardContainer.innerHTML = '<h3>Local Highscores</h3>';
-            leaderboard.forEach((entry: LeaderboardEntry) => {
+public displayLeaderboard() {
+    const leaderboard: LeaderboardEntry[] = JSON.parse(localStorage.getItem('leaderboard') || '[]');
+    const leaderboardContainer = document.querySelector('.leaderboard.left');
+    
+    if (leaderboardContainer) {
+        leaderboardContainer.innerHTML = '<h3>Local Highscores</h3>';
+        
+        // Sort by score (descending) and take top 20
+        leaderboard
+            .sort((a, b) => b.score - a.score) // Highest score first
+            .slice(0, 20) // Only keep top 20
+            .forEach((entry: LeaderboardEntry) => {
                 const entryElement = document.createElement('div');
                 entryElement.textContent = `${entry.name}: ${entry.score}`;
                 leaderboardContainer.appendChild(entryElement);
             });
-        } else {
-            console.error('Leaderboard container not found');
-        }
+    } else {
+        console.error('Leaderboard container not found');
     }
+}
 
     // WIP: Sends the score to the backend and updates the global leaderboard
     public uploadScore(name: string, score: number, time: number) {

@@ -9,6 +9,7 @@ import appleImg from "../assets/Apple_Online_Snake.png"; // Import the apple ima
 import MultiplayerLogic from "../game/logic/MultiPlayerLogic";
 
 import asteroidImg from "../assets/asteroid.png"; // Import the asteroid image
+import movingAsteroidImg from "../assets/movingAsteroid.png"; // Import the moving asteroid image
 
 //Standard rows and columns for singleplayer
 let rows = 15;
@@ -38,6 +39,7 @@ const GamePage: React.FC = () => {
   }, []);
 
   const asteroidImageRef = useRef<HTMLImageElement | null>(null);
+  const movingAsteroidImageRef = useRef<HTMLImageElement | null>(null);
 
   useEffect(() => {
     const img = new window.Image();
@@ -45,15 +47,21 @@ const GamePage: React.FC = () => {
     asteroidImageRef.current = img;
   }, []);
 
+  useEffect(() => {
+    const img = new window.Image();
+    img.src = movingAsteroidImg;
+    movingAsteroidImageRef.current = img;
+  }, []);
+
   function drawBoard() {
     const ctx = canvasRef.current?.getContext("2d");
     if (!ctx || !logic) return;
 
-    //Das kann man 100% noch optimieren
+    
     rows = logic.getRows();
     columns = logic.getColumns();
 
-    // Hintergrund
+    // Background
     ctx.fillStyle = "black";
     ctx.fillRect(0, 0, columns * blockWidth, rows * blockHeight);
     
@@ -74,7 +82,7 @@ const GamePage: React.FC = () => {
       }
     }
 
-    // Food zeichnen
+    // draw food
     logic.getFood().forEach(food => {
       if (foodImageRef.current && foodImageRef.current.complete) {
         ctx.drawImage(
@@ -85,7 +93,7 @@ const GamePage: React.FC = () => {
           blockHeight
         );
       } else {
-        // Fallback, falls das Bild noch nicht geladen ist
+        // Fallback, if the image is not loaded yet
         ctx.fillStyle = "red";
         ctx.fillRect(
           food.x * blockWidth,
@@ -132,13 +140,23 @@ const GamePage: React.FC = () => {
 
       //Draw all moving obstacles
       logic.getMovingObstacles().forEach(ob => {
-        ctx.fillStyle = "#30D5C8";
-        ctx.fillRect(
-          ob.position.x * blockWidth,
-          ob.position.y * blockHeight,
-          blockWidth,
-          blockHeight
-        );
+        if(movingAsteroidImageRef.current && movingAsteroidImageRef.current.complete){
+          ctx.drawImage(
+            movingAsteroidImageRef.current,
+            ob.position.x * blockWidth,
+            ob.position.y * blockHeight,
+            blockWidth,
+            blockHeight
+          );
+        }else{
+          ctx.fillStyle = "#30D5C8";
+          ctx.fillRect(
+            ob.position.x * blockWidth,
+            ob.position.y * blockHeight,
+            blockWidth,
+            blockHeight
+          );
+        }
       });
     }else{
       //Draw all snakes
@@ -156,13 +174,24 @@ const GamePage: React.FC = () => {
 
       //Draw all moving obstacles
       logic.getMovingObstacles().forEach(ob => {
-        ctx.fillStyle = "#30D5C8";
-        ctx.fillRect(
-          ob.x * blockWidth,
-          ob.y * blockHeight,
-          blockWidth,
-          blockHeight
-        );
+        if(movingAsteroidImageRef.current && movingAsteroidImageRef.current.complete){
+          ctx.drawImage(
+            movingAsteroidImageRef.current,
+            ob.x * blockWidth,
+            ob.y * blockHeight,
+            blockWidth,
+            blockHeight
+          );
+        }else{
+          ctx.fillStyle = "#30D5C8";
+          ctx.fillRect(
+            ob.x * blockWidth,
+            ob.y * blockHeight,
+            blockWidth,
+            blockHeight
+          );
+        }
+
       });
     }
   }
@@ -237,19 +266,19 @@ const GamePage: React.FC = () => {
     return () => window.removeEventListener('keydown', escListener);
   }, [logic, endGame, navigate]);
 
-  // Musiksteuerung
+  // music control
   useEffect(() => {
     const muted = localStorage.getItem("musicMuted") === "true";
     if (muted) {
-      // Musik pausieren
+      // pause music
       audioRef.current?.pause();
     } else {
-      // Musik abspielen
+      // play music
       audioRef.current?.play();
     }
   }, []);
 
-  // Optional: Auf Änderungen am Mute-Status reagieren
+  // Optional: reacting on change of the mute status 
   useEffect(() => {
     const onStorage = (e: StorageEvent) => {
       if (e.key === "musicMuted") {
@@ -297,7 +326,7 @@ const GamePage: React.FC = () => {
         <p>Length: {currentSnakeLength}</p>
         <p>Time: {playTime}</p>
       </div>
-      <div className="gameMap" style={{
+      <div className="gameMap neonBorder" style={{
         width: `${columns * blockWidth}px`,
         height: `${rows * blockHeight}px`,
         background: "black",
