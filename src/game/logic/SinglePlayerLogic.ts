@@ -196,7 +196,6 @@ class SinglePlayerLogic {
             }
             if (justAteFood === true) {
                 this.entityGenerator.generateFood();
-                //this.generateFood();
                 this.displaySnakeLength(this.snakeSegments.length);
                 this.painter.ApplyColorsToSnakeSegments();
             } else {
