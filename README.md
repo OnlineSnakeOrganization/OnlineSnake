@@ -42,5 +42,5 @@ https://onlinesnakeorganization.github.io/OnlineSnake/ <- Link zum spielen
 For testing with a local backend, create a .env file in the root directory with theese Variables:
 ```
 VITE_BACKEND_URL = localhost:3000 #localhost:3000 #onlinesnakeserver-production.up.railway.app
-VITE_USE_SECURE = false #This needs to be set to true if you are on GitHub Pages. For local testing let it on false.
+VITE_USE_SECURE = false #Set this to true if you need https and wss instead of http and ws. For local testing, false should work fine.
 ```
