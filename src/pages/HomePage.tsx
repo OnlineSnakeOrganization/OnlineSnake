@@ -30,9 +30,11 @@ const HomePage: React.FC = () => {
   const [globalHighscores, setGlobalHighscores] = useState<Highscore[]>([]);
   const [showHelp, setShowHelp] = useState(false);
 
+  // Initialize the local and global leaderboards
   useEffect(() => {
+    // Local Leaderboard
     displayLeaderboard();
-    // Fetch global highscores from backend
+    // Fetch Global Leaderboard from backend address (depends on .env variables)
     fetch(`http${USE_SECURE === 'true' ? 's' : ''}://${BACKEND_URL}/highscores`)
       .then(res => res.json())
       .then((data: Highscore[]) => {
@@ -41,6 +43,7 @@ const HomePage: React.FC = () => {
       .catch(() => setGlobalHighscores([]));
   }, []);
 
+  // Display the local leaderboard from localStorage
   const displayLeaderboard = () => {
     const leaderboard = JSON.parse(localStorage.getItem('leaderboard') || '[]');
     const leaderboardContainer = document.querySelector('.leaderboard.left');
@@ -58,13 +61,18 @@ const HomePage: React.FC = () => {
 
   return (
     <>
+      {/* Background Stars */}
       <div id="stars"></div>
       <div id="stars2"></div>
       <div id="stars3"></div>
       <div id="stars4"></div>
+
+      {/* Local Leaderboard (Left) */}
       <div className="leaderboard left">
         <h3>Local Highscores</h3>
       </div>
+
+      {/* Main Container */}
       <div className="container">
         {/* Title */}
         <h1 className="title">Online-Snake</h1>
@@ -109,7 +117,7 @@ const HomePage: React.FC = () => {
         }}>Multiplayer</button>
       </div>
 
-      { /* Global Highscores Section */}
+      { /* Global Leaderboard (Right) */}
       <div className="leaderboard right">
         <h3>Global Highscores</h3>
         {globalHighscores.length === 0 && <div>No scores yet.</div>}
@@ -118,7 +126,7 @@ const HomePage: React.FC = () => {
         ))}
       </div>
 
-      {/* Help Icon */}
+      {/* Help Icon (? in lower left corner) */}
       <div
         className="help-icon"
         style={{ position: 'fixed', bottom: 24, right: 24, zIndex: 10000, cursor: 'pointer' }}
