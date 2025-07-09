@@ -5,12 +5,14 @@ import '../css/home.css';
 import '../css/stars.css';
 import HelpDialog from "../components/HelpDialog";
 
-let BACKEND_URL: string;
-let USE_SECURE: string;
+let BACKEND_URL: string | undefined;
+let USE_SECURE: string | undefined;
 try {
   BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
   USE_SECURE = import.meta.env.VITE_USE_SECURE;
+  if(BACKEND_URL === undefined || USE_SECURE === undefined) throw new Error("No .env found or missing Variables");
 } catch (error) {
+  console.log(error);
   BACKEND_URL = "onlinesnakeserver-production.up.railway.app";
   USE_SECURE = "true";
 }
