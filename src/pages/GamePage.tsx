@@ -9,6 +9,7 @@ import appleImg from "../assets/Apple_Online_Snake.png"; // Import the apple ima
 import MultiplayerLogic from "../game/logic/MultiPlayerLogic";
 
 import asteroidImg from "../assets/asteroid.png"; // Import the asteroid image
+import movingAsteroidImg from "../assets/movingAsteroid.png"; // Import the moving asteroid image
 
 //Standard rows and columns for singleplayer
 let rows = 15;
@@ -38,11 +39,18 @@ const GamePage: React.FC = () => {
   }, []);
 
   const asteroidImageRef = useRef<HTMLImageElement | null>(null);
+  const movingAsteroidImageRef = useRef<HTMLImageElement | null>(null);
 
   useEffect(() => {
     const img = new window.Image();
     img.src = asteroidImg;
     asteroidImageRef.current = img;
+  }, []);
+
+  useEffect(() => {
+    const img = new window.Image();
+    img.src = movingAsteroidImg;
+    movingAsteroidImageRef.current = img;
   }, []);
 
   function drawBoard() {
@@ -132,9 +140,9 @@ const GamePage: React.FC = () => {
 
       //Draw all moving obstacles
       logic.getMovingObstacles().forEach(ob => {
-        if(asteroidImageRef.current && asteroidImageRef.current.complete){
+        if(movingAsteroidImageRef.current && movingAsteroidImageRef.current.complete){
           ctx.drawImage(
-            asteroidImageRef.current,
+            movingAsteroidImageRef.current,
             ob.position.x * blockWidth,
             ob.position.y * blockHeight,
             blockWidth,
@@ -166,9 +174,9 @@ const GamePage: React.FC = () => {
 
       //Draw all moving obstacles
       logic.getMovingObstacles().forEach(ob => {
-        if(asteroidImageRef.current && asteroidImageRef.current.complete){
+        if(movingAsteroidImageRef.current && movingAsteroidImageRef.current.complete){
           ctx.drawImage(
-            asteroidImageRef.current,
+            movingAsteroidImageRef.current,
             ob.x * blockWidth,
             ob.y * blockHeight,
             blockWidth,
