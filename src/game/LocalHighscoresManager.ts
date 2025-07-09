@@ -31,7 +31,18 @@ class LocalHighscoresManager{
     public uploadScore(name: string, score: number, time: number) {
         // Calculate game duration in seconds
         const gameDuration = Math.floor(time / 1000);
-        fetch("https://onlinesnakeserver-production.up.railway.app/highscores", {
+        let BACKEND_URL: string | undefined;
+        let USE_SECURE: string | undefined;
+        try {
+            BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+            USE_SECURE = import.meta.env.VITE_USE_SECURE;
+            if(BACKEND_URL === undefined || USE_SECURE === undefined) throw new Error("No .env found or missing Variables");
+        } catch (error) {
+            console.log(error);
+            BACKEND_URL = "onlinesnakeserver-production.up.railway.app";
+            USE_SECURE = "true";
+        }
+        fetch(`http${USE_SECURE === 'true' ? 's' : ''}://${BACKEND_URL}/highscores`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
