@@ -5,6 +5,16 @@ import '../css/home.css';
 import '../css/stars.css';
 import HelpDialog from "../components/HelpDialog";
 
+let BACKEND_URL: string;
+let USE_SECURE: string;
+try {
+  BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+  USE_SECURE = import.meta.env.VITE_USE_SECURE;
+} catch (error) {
+  BACKEND_URL = "onlinesnakeserver-production.up.railway.app";
+  USE_SECURE = "true";
+}
+
 interface Highscore {
   playerName: string;
   score: number;
@@ -21,7 +31,7 @@ const HomePage: React.FC = () => {
   useEffect(() => {
     displayLeaderboard();
     // Fetch global highscores from backend
-    fetch('https://onlinesnakeserver-production.up.railway.app/highscores')
+    fetch(`http${USE_SECURE === 'true' ? 's' : ''}://${BACKEND_URL}/highscores`)
       .then(res => res.json())
       .then((data: Highscore[]) => {
         setGlobalHighscores(data);
@@ -82,7 +92,7 @@ const HomePage: React.FC = () => {
             if (playerName) {
               localStorage.setItem('playerName', playerName); // Save player name to localStorage
               console.log('Connecting to Server...');
-              const ws = new WebSocket('wss://onlinesnakeserver-production.up.railway.app/ws');
+              const ws = new WebSocket(`ws${USE_SECURE === 'true' ? 's' : ''}://${BACKEND_URL}/ws`);
               ws.onopen = () => {
                 console.log("Connection Established!")
                 setWsObject(ws);  //Sets the WebSocket Object for further use.
