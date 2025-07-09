@@ -38,3 +38,9 @@ https://onlinesnakeorganization.github.io/OnlineSnake/ <- Link zum spielen
 ### Sonstiges
 - Abgabe Quellcode + Dokumentation
 - 15 Minuten Präsentation pro Gruppe (Produktvorstellung)
+
+For testing with a local backend, create a .env file in the root directory with theese Variables:
+```
+VITE_BACKEND_URL = localhost:3000 #localhost:3000 #onlinesnakeserver-production.up.railway.app
+VITE_USE_SECURE = false #This needs to be set to true if you are on GitHub Pages. For local testing let it on false.
+```
