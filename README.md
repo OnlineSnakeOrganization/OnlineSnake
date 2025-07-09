@@ -1,4 +1,5 @@
-https://onlinesnakeorganization.github.io/OnlineSnake/ <- Link zum spielen
+# https://onlinesnakeorganization.github.io/OnlineSnake/ <- Link to Play
+
 For testing with a local backend, create a .env file in the root directory with both of theese Variables:
 ```
 VITE_BACKEND_URL = localhost:3000
