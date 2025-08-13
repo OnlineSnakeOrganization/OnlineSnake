@@ -25,6 +25,12 @@ class AudioPlayer{
         }
     }
 
+    public pauseBackgroundMusic() {
+        if (this.backgroundMusic) {
+            this.backgroundMusic.pause();
+        }
+    }
+
     public stopAllSounds() {
         if (this.backgroundMusic) {
             this.backgroundMusic.pause();

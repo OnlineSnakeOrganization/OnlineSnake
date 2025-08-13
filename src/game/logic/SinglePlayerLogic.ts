@@ -73,7 +73,21 @@ class SinglePlayerLogic {
         this.staticObstacles = [];
         this.movingObstacles = []
         this.controller = new StraightController(document, this);   //Compiler is angry if this is gone
+
+        window.addEventListener("storage", this.handleMuteChange);
     }
+
+    private handleMuteChange = (e: StorageEvent) => {
+        if (e.key === "musicMuted") {
+            const muted = e.newValue === "true";
+            if (muted) {
+                this.audioPlayer.pauseBackgroundMusic();
+            } else {
+                this.audioPlayer.playBackgroundMusic();
+            }
+        }
+    };
+
     //----------Getter
     public getSnakeSegments(){
         return this.snakeSegments;
@@ -139,7 +153,12 @@ class SinglePlayerLogic {
             this.controller = new StraightController(document, this);
         }
         this.controller.enable();
-        this.audioPlayer.playBackgroundMusic();
+        const muted = localStorage.getItem("musicMuted") === "true";
+        if (!muted) {
+            this.audioPlayer.playBackgroundMusic();
+        } else {
+            this.audioPlayer.pauseBackgroundMusic();
+        }
         this.snakeInterval = setInterval(this.snakeLoop, 125);
         this.movingObstacleInterval = setInterval(this.movingObstacleLoop, 1000);
     }
@@ -156,6 +175,7 @@ class SinglePlayerLogic {
         this.killSnake();
         clearInterval(this.movingObstacleInterval);
         this.controller.disable();
+        window.removeEventListener("storage", this.handleMuteChange);
     }
 
     public clearIntervals = (): void =>{
@@ -237,3 +257,4 @@ class SinglePlayerLogic {
     }
 }
 export default SinglePlayerLogic;
+    

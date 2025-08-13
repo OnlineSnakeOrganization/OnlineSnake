@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import '../css/home.css';
 import '../css/stars.css';
 import HelpDialog from "../components/HelpDialog";
+import MuteButton from "../components/MuteButton";
 
 let BACKEND_URL: string | undefined;
 let USE_SECURE: string | undefined;
@@ -29,6 +30,14 @@ const HomePage: React.FC = () => {
 
   const [globalHighscores, setGlobalHighscores] = useState<Highscore[]>([]);
   const [showHelp, setShowHelp] = useState(false);
+  const [muted, setMuted] = React.useState(() => localStorage.getItem("musicMuted") === "true");
+
+  const handleToggleMute = () => {
+    setMuted((prev) => {
+      localStorage.setItem("musicMuted", String(!prev));
+      return !prev;
+    });
+  };
 
   // Initialize the local and global leaderboards
   useEffect(() => {
@@ -138,6 +147,7 @@ const HomePage: React.FC = () => {
         </svg>
       </div>
       {showHelp && <HelpDialog onClose={() => setShowHelp(false)} />}
+      <MuteButton muted={muted} onToggle={handleToggleMute} />
     </>
   );
 };

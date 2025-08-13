@@ -21,7 +21,7 @@ const HelpDialog: React.FC<HelpDialogProps> = ({ onClose }) => (
     }}
   >
     <h3>Controls</h3>
-    <ul style={{ padding: 0, margin: 0, listStylePosition: "inside", display: "inline-block", textAlign: "left" }}>
+    <ul style={{ padding:0, margin: 0, listStylePosition: "inside", display: "inline-block", textAlign: "left" }}>
       {/* Hier kannst du weitere Controls ergänzen */}
     </ul>
     <div style={{ margin: "18px 0 0 0", textAlign: "center", fontSize: "1.1em", fontWeight: "bold" }}>Movement</div>
@@ -55,7 +55,7 @@ const HelpDialog: React.FC<HelpDialogProps> = ({ onClose }) => (
         </svg>
       </div>
     </div>
-    <div style={{ margin: "18px 0 0 0", display: "flex", flexDirection: "row", justifyContent: "center", gap: 32 }}>
+    <div style={{ margin: "18px 0 0 0", display: "flex", flexDirection: "row", justifyContent: "left", gap: 56 }}>
       <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
         <span style={{ fontSize: "0.95em", marginBottom: 4 }}>Restart</span>
         <svg width="36" height="36" viewBox="0 0 36 36" style={{ display: "block" }} xmlns="http://www.w3.org/2000/svg">
