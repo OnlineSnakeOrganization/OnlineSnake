@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useGame } from "../context/GameContext";
 import '../css/game.css';
 import '../css/stars.css';
-import SinglePlayerLogic from "../game/logic/SinglePlayerLogic";
+import SinglePlayerLogic, { GhostRun, GhostSegment } from "../game/logic/SinglePlayerLogic";
 import GameOverDialog from "../components/GameOverDialog";
 import appleImg from "../assets/Apple_Online_Snake.png"; // Import the apple image
 import MultiplayerLogic from "../game/logic/MultiPlayerLogic";
@@ -17,6 +17,13 @@ let columns = 15;
 const blockWidth = 30;
 const blockHeight = 30;
 
+function formatDuration(durationInMs: number): string {
+  const totalSeconds = Math.floor(durationInMs / 1000);
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  return `${minutes}:${seconds.toString().padStart(2, "0")}`;
+}
+
 const GamePage: React.FC = () => {
   const navigate = useNavigate();
   const { inGame, gameMode, endGame, ws, setWsObject } = useGame();
@@ -29,6 +36,17 @@ const GamePage: React.FC = () => {
   const [logic, setLogic] = useState<SinglePlayerLogic | MultiplayerLogic | undefined>(undefined);
   const [showGameOverDialog, setShowGameOverDialog] = useState(false);
   const [muted, setMuted] = useState(() => localStorage.getItem("musicMuted") === "true");
+  const [bestGhostRun, setBestGhostRun] = useState<GhostRun | undefined>(undefined);
+
+  function refreshBestGhostRun(activeLogic: SinglePlayerLogic | MultiplayerLogic | undefined) {
+    if (activeLogic instanceof SinglePlayerLogic) {
+      const ghostRun = activeLogic.getBestGhostRun();
+      setBestGhostRun(ghostRun.score >= 0 ? ghostRun : undefined);
+      return;
+    }
+
+    setBestGhostRun(undefined);
+  }
 
   // Food-Bild vorbereiten (außerhalb von drawBoard, am Anfang der Komponente)
   const foodImageRef = useRef<HTMLImageElement | null>(null);
@@ -127,6 +145,21 @@ const GamePage: React.FC = () => {
     });
 
     if(logic instanceof SinglePlayerLogic){
+      const ghostFrame = logic.getGhostFrame();
+
+      if (ghostFrame) {
+        ghostFrame.segments.forEach((segment: GhostSegment, index: number) => {
+          const alpha = Math.max(0.15, 0.55 - index * 0.03);
+          ctx.fillStyle = `rgba(120, 220, 255, ${alpha})`;
+          ctx.fillRect(
+            segment.x * blockWidth,
+            segment.y * blockHeight,
+            blockWidth,
+            blockHeight
+          );
+        });
+      }
+
       //Draw all snakes
       logic.getSnakeSegments().forEach(segment => {
         ctx.fillStyle = segment.color;
@@ -232,6 +265,7 @@ const GamePage: React.FC = () => {
   useEffect(() => {
     if (logic) {
       logic.start();
+      refreshBestGhostRun(logic);
     }
   }, [logic]);
 
@@ -244,6 +278,7 @@ const GamePage: React.FC = () => {
         e.preventDefault();
         setShowGameOverDialog(false);
         logic?.start();
+        refreshBestGhostRun(logic);
       }
     };
     window.addEventListener('keydown', keyListener);
@@ -325,6 +360,12 @@ const GamePage: React.FC = () => {
       <div>
         <p>Length: {currentSnakeLength}</p>
         <p>Time: {playTime}</p>
+        {bestGhostRun && (
+          <>
+            <p>Score to beat: {bestGhostRun.score}</p>
+            <p>Time to beat: {formatDuration(bestGhostRun.duration)}</p>
+          </>
+        )}
       </div>
       <div className="gameMap neonBorder" style={{
         width: `${columns * blockWidth}px`,
@@ -345,6 +386,7 @@ const GamePage: React.FC = () => {
             setShowGameOverDialog(false);
             console.log("restart click")
             logic?.start();
+            refreshBestGhostRun(logic);
           }}
           onMenu={() => {
             setShowGameOverDialog(false);

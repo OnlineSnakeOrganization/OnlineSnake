@@ -10,6 +10,13 @@ import SnakePainter from "../Painter";
 export type SnakeSegment = {x: number, y: number, color: string};
 export type Food = {x: number, y: number};
 export type Obstacle = {x: number, y: number};
+export type GhostSegment = {x: number, y: number};
+export type GhostFrame = {segments: GhostSegment[]};
+export type GhostRun = {score: number, duration: number, frames: GhostFrame[]};
+export type RunStats = {score: number, duration: number};
+
+const BEST_GHOST_RUN_KEY = "bestGhostRun";
+const LAST_RUN_STATS_KEY = "lastRunStats";
 
 class SinglePlayerLogic {
     private snakeSegments: SnakeSegment[];
@@ -40,6 +47,9 @@ class SinglePlayerLogic {
     private movingObstacleInterval: NodeJS.Timeout | undefined;
 
     private onGameOver?: () => void;    //This method triggers the code on the GamePage
+    private currentRunFrames: GhostFrame[];
+    private ghostReplayFrames: GhostFrame[];
+    private currentTick: number;
 
     constructor(
         rows: number,
@@ -65,14 +75,17 @@ class SinglePlayerLogic {
         this.audioPlayer = new AudioPlayer();
         this.highscores = new LocalHighscoresManager();
         
-        //We already refresh theese variables in the start method but we still have to give them some value in the constructor.
-        this.snakeDirection = "UP";
+        //We already refresh theese variables in the start method, but we still have to give them some value in the constructor.
+        this.snakeDirection = "right";
         this.diagonalMovementAllowed = diagonalMovementAllowed;
         this.snakeSegments = [];
         this.food = [];
         this.staticObstacles = [];
         this.movingObstacles = []
         this.controller = new StraightController(document, this);   //Compiler is angry if this is gone
+        this.currentRunFrames = [];
+        this.ghostReplayFrames = this.loadBestGhostRun().frames;
+        this.currentTick = 0;
 
         window.addEventListener("storage", this.handleMuteChange);
     }
@@ -122,6 +135,20 @@ class SinglePlayerLogic {
     public getMaxAmountOfStaticObstacles(): number{
         return this.maxAmountOfStaticObstacles;
     }
+
+    public getGhostFrame(): GhostFrame | undefined {
+        return this.ghostReplayFrames[this.currentTick];
+    }
+
+    public getBestGhostRun(): GhostRun {
+        const bestGhostRun = this.loadBestGhostRun();
+        const lastRunStats = this.loadLastRunStats();
+        return {
+            score: bestGhostRun.score,
+            duration: bestGhostRun.duration || lastRunStats.duration,
+            frames: this.ghostReplayFrames,
+        };
+    }
     //----------
     public start(): void {
         // If running intervals exist, clear them.
@@ -134,6 +161,9 @@ class SinglePlayerLogic {
         this.food = [];
         this.staticObstacles = [];
         this.movingObstacles = [];
+        this.currentRunFrames = [];
+        this.currentTick = 0;
+        this.ghostReplayFrames = this.loadBestGhostRun().frames;
         this.stopWatch.reset();
         this.stopWatch.start();
     
@@ -142,6 +172,7 @@ class SinglePlayerLogic {
         this.snakeSegments.push({x: 0, y: 0, color: ""});
 
         this.painter.ApplyColorsToSnakeSegments();
+        this.recordCurrentFrame();
         this.displaySnakeLength(this.snakeSegments.length);
         this.entityGenerator.generateObstacles();
         this.entityGenerator.generateMovingObstacles();
@@ -197,8 +228,11 @@ class SinglePlayerLogic {
 
             // Score = snakeSegments.length - 1 (Anzahl gegessener Nahrung)
             const score = Math.max(this.snakeSegments.length - 1, 0);
+            const duration = this.stopWatch.getTime();
             this.highscores.saveScore(playerName, score);
-            this.highscores.uploadScore(playerName, score, this.stopWatch.getTime());
+            this.highscores.uploadScore(playerName, score, duration);
+            this.persistLastRunStats(score, duration);
+            this.persistGhostRun(score, duration);
             this.killSnake();
             this.snakeSegments[0] = oldHead;
             if (this.onGameOver) this.onGameOver();
@@ -221,6 +255,9 @@ class SinglePlayerLogic {
             } else {
                 this.snakeSegments.pop(); // Remove the tail if no food is eaten
             }
+
+            this.currentTick++;
+            this.recordCurrentFrame();
         }
     }
 
@@ -254,6 +291,96 @@ class SinglePlayerLogic {
         }
 
         return false;
+    }
+
+    private recordCurrentFrame(): void {
+        this.currentRunFrames.push({
+            segments: this.snakeSegments.map(segment => ({
+                x: segment.x,
+                y: segment.y,
+            })),
+        });
+    }
+
+    private persistGhostRun(score: number, duration: number): void {
+        if (this.currentRunFrames.length === 0) return;
+        const bestGhostRun = this.loadBestGhostRun();
+        const isHigherScore = score > bestGhostRun.score;
+        const isEqualScoreWithBetterTime =
+            score === bestGhostRun.score && (bestGhostRun.duration === 0 || duration < bestGhostRun.duration);
+
+        if (!isHigherScore && !isEqualScoreWithBetterTime) return;
+
+        const nextBestRun: GhostRun = {
+            score,
+            duration,
+            frames: this.currentRunFrames,
+        };
+        localStorage.setItem(BEST_GHOST_RUN_KEY, JSON.stringify(nextBestRun));
+    }
+
+    private persistLastRunStats(score: number, duration: number): void {
+        const runStats: RunStats = { score, duration };
+        localStorage.setItem(LAST_RUN_STATS_KEY, JSON.stringify(runStats));
+    }
+
+    private loadLastRunStats(): RunStats {
+        const rawRunStats = localStorage.getItem(LAST_RUN_STATS_KEY);
+        if (!rawRunStats) return { score: -1, duration: 0 };
+
+        try {
+            const parsed = JSON.parse(rawRunStats);
+            return {
+                score: typeof parsed?.score === "number" ? parsed.score : -1,
+                duration: typeof parsed?.duration === "number" ? parsed.duration : 0,
+            };
+        } catch (error) {
+            console.error("Failed to load last run stats", error);
+            return { score: -1, duration: 0 };
+        }
+    }
+
+    private loadBestGhostRun(): GhostRun {
+        const rawGhostRun = localStorage.getItem(BEST_GHOST_RUN_KEY);
+        if (!rawGhostRun) return { score: -1, duration: 0, frames: [] };
+
+        try {
+            const parsed = JSON.parse(rawGhostRun);
+            if (Array.isArray(parsed)) {
+                return {
+                    score: -1,
+                    duration: 0,
+                    frames: this.normalizeGhostFrames(parsed),
+                };
+            }
+
+            const score = typeof parsed?.score === "number" ? parsed.score : -1;
+            const duration = typeof parsed?.duration === "number" ? parsed.duration : 0;
+            return {
+                score,
+                duration,
+                frames: this.normalizeGhostFrames(parsed?.frames),
+            };
+        } catch (error) {
+            console.error("Failed to load ghost run", error);
+            return { score: -1, duration: 0, frames: [] };
+        }
+    }
+
+    private normalizeGhostFrames(rawFrames: unknown): GhostFrame[] {
+        if (!Array.isArray(rawFrames)) return [];
+
+        return rawFrames
+            .filter(frame => Array.isArray((frame as GhostFrame)?.segments))
+            .map(frame => ({
+                segments: (frame as GhostFrame).segments
+                    .filter((segment: GhostSegment) =>
+                        typeof segment?.x === "number" && typeof segment?.y === "number")
+                    .map((segment: GhostSegment) => ({
+                        x: segment.x,
+                        y: segment.y,
+                    })),
+            }));
     }
 }
 export default SinglePlayerLogic;
